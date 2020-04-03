@@ -23,6 +23,8 @@
 #include <ShellScalingAPI.h>
 
 #include <stdexcept>
+#include <chrono>
+#include <iostream>
 
 using namespace cycfi::artist;
 
@@ -350,6 +352,8 @@ int run_app(
 
    MSG msg;
    bool active = true;
+   int i = 0;
+   float acc = 0;
    while (active)
    {
       while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -361,8 +365,19 @@ int run_app(
       }
       if (animate)
       {
+         auto begin = std::chrono::steady_clock::now();
          win.render();
          win.swapBuffers();
+         auto end = std::chrono::steady_clock::now();
+         auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+
+         acc = acc + elapsed;
+         if (++i == 100)
+         {
+             std::cout << acc / 100 << std::endl;
+             i = 0;
+             acc = 0;
+         }
       }
    }
 
