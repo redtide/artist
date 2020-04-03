@@ -20,6 +20,8 @@
 # include "SkPath.h"
 # include "GrBackendSurface.h"
 
+#include <ShellScalingAPI.h>
+
 #include <stdexcept>
 
 using namespace cycfi::artist;
@@ -67,6 +69,11 @@ window::window(extent size, color bkd)
       NULL, NULL,					// parent window, menu
       nullptr, NULL);			// instance, param
 
+   auto dpi = GetDpiForWindow(fakeWND);
+   auto scale = dpi / 96.0; // $$$
+   size.x *= scale;
+   size.y *= scale;
+
    HDC fakeDC = GetDC(fakeWND);	// Device Context
 
    PIXELFORMATDESCRIPTOR fakePFD;
@@ -108,7 +115,10 @@ window::window(extent size, color bkd)
 
 
    RECT rect = { 0, 0, LONG(size.x), LONG(size.y) };
-   AdjustWindowRect(&rect, style, false);
+
+   AdjustWindowRectExForDpi(&rect, style, false, WS_EX_APPWINDOW, dpi);
+
+   // AdjustWindowRect(&rect, style, false);
    size.x = rect.right - rect.left;
    size.y = rect.bottom - rect.top;
 
@@ -196,15 +206,26 @@ window::~window()
       DestroyWindow(WND);
 }
 
+void foo() {}
+
 LRESULT CALLBACK handle_event(
    HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+   auto param = GetWindowLongPtrW(hWnd, GWLP_USERDATA);
+   auto win = reinterpret_cast<window*>(param);
+
    switch (message)
    {
+      case WM_DPICHANGED:
+         {
+            RECT bounds;
+            GetClientRect(hWnd, &bounds);
+            foo();
+         }
+         break;
+
       case WM_PAINT:
          {
-            auto param = GetWindowLongPtrW(hWnd, GWLP_USERDATA);
-            auto win = reinterpret_cast<window*>(param);
             win->render();
             win->swapBuffers();
          }
@@ -249,8 +270,8 @@ void window::render() {
    PAINTSTRUCT ps;
    HDC hdc = BeginPaint(WND, &ps);
 
-   auto interface = GrGLMakeNativeInterface();
-   sk_sp<GrContext> ctx = GrContext::MakeGL(interface);
+   auto xface = GrGLMakeNativeInterface();
+   sk_sp<GrContext> ctx = GrContext::MakeGL(xface);
 
    GrGLint buffer;
    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &buffer);
@@ -321,6 +342,8 @@ int run_app(
  , bool animate
 )
 {
+   SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
+
    window win{ window_size, bkd };
 
    MSG msg;
