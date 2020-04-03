@@ -28,7 +28,7 @@ class window
 {
 public:
 
-               window(extent size);
+               window(extent size, color bkd);
                ~window();
 
    void        render();
@@ -48,7 +48,7 @@ private:
 
 };
 
-window::window(extent size)
+window::window(extent size, color bkd)
 {;
    _size = size;
    auto style = WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
@@ -178,6 +178,9 @@ window::window(extent size)
 
    // init opengl loader here (extra safe version)
 
+   SetBkColor(DC, RGB(bkd.red, bkd.green, bkd.blue));
+
+   SetWindowLongPtrW(WND, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
    SetWindowText(WND, L"Hello Skia");
    ShowWindow(WND, SW_RESTORE);
 }
@@ -198,10 +201,18 @@ LRESULT CALLBACK handle_event(
 {
    switch (message)
    {
-      case WM_KEYDOWN:
-         if (wParam == VK_ESCAPE) {
-            PostQuitMessage(0);
+      case WM_PAINT:
+         {
+            auto param = GetWindowLongPtrW(hWnd, GWLP_USERDATA);
+            auto win = reinterpret_cast<window*>(param);
+            win->render();
+            win->swapBuffers();
          }
+         break;
+
+      case WM_KEYDOWN:
+         if (wParam == VK_ESCAPE)
+            PostQuitMessage(0);
          break;
 
       case WM_CLOSE:
@@ -235,6 +246,9 @@ void window::render() {
    // glClearColor(0.0f, 0.0f, 1.0f, 1.0f);	// rgb(33,150,243)
    // glClear(GL_COLOR_BUFFER_BIT);
 
+   PAINTSTRUCT ps;
+   HDC hdc = BeginPaint(WND, &ps);
+
    auto interface = GrGLMakeNativeInterface();
    sk_sp<GrContext> ctx = GrContext::MakeGL(interface);
 
@@ -254,47 +268,42 @@ void window::render() {
    if (!surface)
       throw std::runtime_error("Error: SkSurface::MakeRenderTarget returned null");
 
-   SkCanvas* canvas = surface->getCanvas();
+   SkCanvas* gpu_canvas = surface->getCanvas();
+   auto cnv = canvas{ gpu_canvas };
 
-   canvas->clear(SK_ColorRED);
+   auto scale = GetDpiForWindow(WND) / 96.0;
+   cnv.pre_scale({ float(scale), float(scale) });
+   draw(cnv);
 
-   SkPaint paint;
-   paint.setColor(SK_ColorBLUE);
+   // SkCanvas* canvas = surface->getCanvas();
 
-   SkRect rect = SkRect::MakeXYWH(10, 10, 128, 128);
-   canvas->drawRect(rect, paint);
+   // canvas->clear(SK_ColorRED);
 
-   //SkPath path;
-   //path.addRect({ 10, 10, 128, 128 });
-   //canvas->drawPath(path, paint);
+   // SkPaint paint;
+   // paint.setColor(SK_ColorBLUE);
 
-    canvas->flush();
+   // SkRect rect = SkRect::MakeXYWH(10, 10, 128, 128);
+   // canvas->drawRect(rect, paint);
 
+   gpu_canvas->flush();
+
+   EndPaint(WND, &ps);
 }
 
-///////////////////////////////////////////////////////////
-
-void window::swapBuffers() {
-
+void window::swapBuffers()
+{
    SwapBuffers(DC);
 }
 
-///////////////////////////////////////////////////////////
-
-void window::destroy() {
-
+void window::destroy()
+{
    wglMakeCurrent(NULL, NULL);
-   if (RC) {
+   if (RC)
       wglDeleteContext(RC);
-   }
-   if (DC) {
+   if (DC)
       ReleaseDC(WND, DC);
-   }
-   if (WND) {
+   if (WND)
       DestroyWindow(WND);
-   }
-
-   // KillTimer(WND, IDT_TIMER1);
 }
 
 namespace cycfi::artist
@@ -312,33 +321,32 @@ int run_app(
  , bool animate
 )
 {
-   window win{ window_size };
-
-   // if (win.create(nullptr, true) != 0) {
-   //    PostQuitMessage(1);
-   // }
+   window win{ window_size, bkd };
 
    MSG msg;
    bool active = true;
-   while (active) {
-      while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-         if (msg.message == WM_QUIT) {
+   while (active)
+   {
+      while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+      {
+         if (msg.message == WM_QUIT)
             active = false;
-         }
          TranslateMessage(&msg);
          DispatchMessage(&msg);
       }
-      win.render();
-      win.swapBuffers();
+      if (animate)
+      {
+         win.render();
+         win.swapBuffers();
+      }
    }
 
    return msg.wParam;
-
-   // return 0;
 }
 
 void stop_app()
 {
+   PostQuitMessage(0);
 }
 
 
