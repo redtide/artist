@@ -267,6 +267,9 @@ void window::render() {
    // glClearColor(0.0f, 0.0f, 1.0f, 1.0f);	// rgb(33,150,243)
    // glClear(GL_COLOR_BUFFER_BIT);
 
+   auto dpi = GetDpiForWindow(WND);
+   auto scale = dpi / 96.0; // $$$
+
    PAINTSTRUCT ps;
    HDC hdc = BeginPaint(WND, &ps);
 
@@ -280,7 +283,7 @@ void window::render() {
    SkColorType colorType = kRGBA_8888_SkColorType;
 
    info.fFormat = GL_RGBA8;
-   GrBackendRenderTarget target(_size.x, _size.y, 0, 8, info);
+   GrBackendRenderTarget target(_size.x*scale, _size.y*scale, 0, 8, info);
 
    sk_sp<SkSurface> surface(
       SkSurface::MakeFromBackendRenderTarget(ctx.get(), target,
@@ -292,7 +295,6 @@ void window::render() {
    SkCanvas* gpu_canvas = surface->getCanvas();
    auto cnv = canvas{ gpu_canvas };
 
-   auto scale = GetDpiForWindow(WND) / 96.0;
    cnv.pre_scale({ float(scale), float(scale) });
    draw(cnv);
 
