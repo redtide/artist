@@ -192,7 +192,7 @@ window::window(extent size, color bkd)
 
    SetWindowLongPtrW(WND, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
    SetWindowText(WND, L"Hello Skia");
-   ShowWindow(WND, SW_RESTORE);
+   ShowWindow(WND, SW_SHOW);
 }
 
 window::~window()
@@ -262,8 +262,8 @@ ATOM window::registerClass(HINSTANCE hInstance)
 
 ///////////////////////////////////////////////////////////
 
-void window::render() {
-
+void window::render()
+{
    // glClearColor(0.0f, 0.0f, 1.0f, 1.0f);	// rgb(33,150,243)
    // glClear(GL_COLOR_BUFFER_BIT);
 
