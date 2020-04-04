@@ -58,8 +58,8 @@ namespace cycfi::artist
          // Load the user fonts from the app's font folder.
          for (fs::directory_iterator it{ fonts_path }; it != fs::directory_iterator{}; ++it)
          {
-            std::wstring s = it->path().wstring().c_str();
-            AddFontResource(it->path().wstring().c_str());
+            auto path = it->path().wstring();
+            AddFontResource(path.c_str());
          }
       }
 
@@ -70,8 +70,8 @@ namespace cycfi::artist
          // Unload the installed user fonts from the app's font folder.
          for (fs::directory_iterator it{ fonts_path }; it != fs::directory_iterator{}; ++it)
          {
-            std::wstring s = it->path().wstring().c_str();
-            RemoveFontResource(it->path().wstring().c_str());
+            auto path = it->path().wstring();
+            RemoveFontResource(path.c_str());
          }
       }
    };
