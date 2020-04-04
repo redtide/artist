@@ -16,6 +16,7 @@
 # include "sysinfoapi.h"
 # include "tchar.h"
 # include <SkTypeface_win.h>
+# include <fontconfig/fontconfig.h>
 # endif
 
 namespace cycfi::artist
