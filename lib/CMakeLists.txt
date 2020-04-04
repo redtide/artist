@@ -12,9 +12,21 @@ if (ARTIST_SKIA)
    # Prebuilt binaries
    ############################################################################
    if (APPLE)
-      set(SKIA_LIB_NAME libskia.a)
-      set(UNIBREAK_LIB_NAME libunibreak.a)
-      set(HARFBUZZ_LIB_NAME libharfbuzz.a)
+
+      ExternalProject_Add(prebuilt_binaries
+         PREFIX "macos"
+         URL https://github.com/cycfi/artist/releases/download/prebuilt-binaries/macos.zip
+         URL_MD5 3fc049d75f2524a47f6d64a9770b2b55
+         CONFIGURE_COMMAND ""
+         BUILD_COMMAND ""
+         INSTALL_COMMAND ""
+      )
+
+      set(ARTIST_BINARIES ${CMAKE_CURRENT_BINARY_DIR}/macos/src/prebuilt_binaries)
+      set(SKIA_LIBRARY ${ARTIST_BINARIES}/libskia.a)
+      set(UNIBREAK_LIBRARY ${ARTIST_BINARIES}/libunibreak.a)
+      set(HARFBUZZ_LIBRARY ${ARTIST_BINARIES}/libharfbuzz.a)
+
    elseif (MSVC)
 
       ExternalProject_Add(prebuilt_binaries
@@ -25,8 +37,8 @@ if (ARTIST_SKIA)
          BUILD_COMMAND ""
          INSTALL_COMMAND ""
       )
-      set(ARTIST_BINARIES ${CMAKE_CURRENT_BINARY_DIR}/windows-x64/src/prebuilt_binaries)
 
+      set(ARTIST_BINARIES ${CMAKE_CURRENT_BINARY_DIR}/windows-x64/src/prebuilt_binaries)
       set(SKIA_LIBRARY ${ARTIST_BINARIES}/skia.lib)
       set(UNIBREAK_LIBRARY ${ARTIST_BINARIES}/unibreak.lib)
       set(HARFBUZZ_LIBRARY ${ARTIST_BINARIES}/harfbuzz.lib)
@@ -194,6 +206,7 @@ endif()
 
 ###############################################################################
 # Libraries and linking
+
 if (ARTIST_SKIA)
    target_link_libraries(artist
    PRIVATE
