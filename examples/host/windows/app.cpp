@@ -51,31 +51,29 @@ private:
    extent      _size;
    bool        _animate;
 
-   LPTSTR      windowClass;	// Window Class
    HGLRC       RC;			// Rendering Context
    HDC	      DC;				// Device Context
    HWND        WND;			// Window
 };
 
 window::window(extent size, color bkd, bool animate)
-{;
-   _size = size;
-   _animate = animate;
+ : _size{ size }
+ , _animate{ animate }
+{
    auto style = WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 
-   windowClass = MAKEINTATOM(registerClass(nullptr));
+   LPTSTR windowClass = MAKEINTATOM(registerClass(nullptr));
    if (windowClass == 0)
       throw std::runtime_error("Error: registerClass() failed.");
 
    // create temporary window
-
    HWND fakeWND = CreateWindow(
       windowClass, L"Fake window",
       style,
-      0, 0,						// position x, y
-      1, 1,						// width, height
-      NULL, NULL,					// parent window, menu
-      nullptr, NULL);			// instance, param
+      0, 0,						   // position x, y
+      1, 1,						   // width, height
+      nullptr, nullptr,	      // parent window, menu
+      nullptr, nullptr);      // instance, param
 
    auto dpi = GetDpiForWindow(fakeWND);
    auto scale = dpi / 96.0; // $$$
@@ -130,10 +128,10 @@ window::window(extent size, color bkd, bool animate)
    size.x = rect.right - rect.left;
    size.y = rect.bottom - rect.top;
 
-	RECT primaryDisplaySize;
-	SystemParametersInfo(SPI_GETWORKAREA, 0, &primaryDisplaySize, 0);	// system taskbar and application desktop toolbars not included
-	auto posX = (primaryDisplaySize.right - size.x) / 2;
-	auto posY = (primaryDisplaySize.bottom - size.y) / 2;
+   RECT primaryDisplaySize;
+   SystemParametersInfo(SPI_GETWORKAREA, 0, &primaryDisplaySize, 0);	// system taskbar and application desktop toolbars not included
+   auto posX = (primaryDisplaySize.right - size.x) / 2;
+   auto posY = (primaryDisplaySize.bottom - size.y) / 2;
 
    // create a new window and context
 
@@ -177,7 +175,7 @@ window::window(extent size, color bkd, bool animate)
       WGL_CONTEXT_MAJOR_VERSION_ARB, major_min,
       WGL_CONTEXT_MINOR_VERSION_ARB, minor_min,
       WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-//		WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
+      //WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
       0
    };
 
@@ -197,11 +195,9 @@ window::window(extent size, color bkd, bool animate)
    // init opengl loader here (extra safe version)
 
    SetBkColor(DC, RGB(bkd.red*255, bkd.green*255, bkd.blue*255));
-
-   //SetBkColor(DC, RGB(255, 255, 255));
-
-   glClearColor(bkd.red, bkd.green, bkd.blue, bkd.alpha);	// rgb(33,150,243)
-   glClear(GL_COLOR_BUFFER_BIT);
+   glClearColor(bkd.red, bkd.green, bkd.blue, bkd.alpha);
+   glClearStencil(0);
+   glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
    SetWindowLongPtrW(WND, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
