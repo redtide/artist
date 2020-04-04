@@ -39,8 +39,12 @@ function(add_example name)
          MSVC_RUNTIME_LIBRARY "MultiThreaded"
       )
       file(
-         COPY ../resources/fonts
-         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resources
+         COPY ${${name}_fonts}
+         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resources/fonts
+      )
+      file(
+         COPY ${${name}_images}
+         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resources/images
       )
       target_link_options(${name} PRIVATE
          /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup shcore.lib

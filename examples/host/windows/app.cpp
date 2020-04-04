@@ -28,11 +28,16 @@
 
 using namespace cycfi::artist;
 
+// rendering elapsed time
+float elapsed_ = 0;
+
+constexpr unsigned IDT_TIMER1 = 100;
+
 class window
 {
 public:
 
-               window(extent size, color bkd);
+               window(extent size, color bkd, bool animate);
                ~window();
 
    void        render();
@@ -44,17 +49,18 @@ private:
    void        destroy();
 
    extent      _size;
+   bool        _animate;
 
    LPTSTR      windowClass;	// Window Class
    HGLRC       RC;			// Rendering Context
    HDC	      DC;				// Device Context
    HWND        WND;			// Window
-
 };
 
-window::window(extent size, color bkd)
+window::window(extent size, color bkd, bool animate)
 {;
    _size = size;
+   _animate = animate;
    auto style = WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 
    windowClass = MAKEINTATOM(registerClass(nullptr));
@@ -190,9 +196,18 @@ window::window(extent size, color bkd)
 
    // init opengl loader here (extra safe version)
 
-   SetBkColor(DC, RGB(bkd.red, bkd.green, bkd.blue));
+   SetBkColor(DC, RGB(bkd.red*255, bkd.green*255, bkd.blue*255));
+
+   //SetBkColor(DC, RGB(255, 255, 255));
+
+   glClearColor(bkd.red, bkd.green, bkd.blue, bkd.alpha);	// rgb(33,150,243)
+   glClear(GL_COLOR_BUFFER_BIT);
 
    SetWindowLongPtrW(WND, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+
+   if (animate)
+      SetTimer(WND, IDT_TIMER1, 16, (TIMERPROC) nullptr);
+
    SetWindowText(WND, L"Hello Skia");
    ShowWindow(WND, SW_SHOW);
 }
@@ -206,6 +221,9 @@ window::~window()
       ReleaseDC(WND, DC);
    if (WND)
       DestroyWindow(WND);
+
+   if (_animate)
+      KillTimer(WND, IDT_TIMER1);
 }
 
 void foo() {}
@@ -223,6 +241,17 @@ LRESULT CALLBACK handle_event(
             RECT bounds;
             GetClientRect(hWnd, &bounds);
             foo();
+         }
+         break;
+
+      case WM_TIMER:
+         if (wParam == IDT_TIMER1)
+         {
+            auto start = std::chrono::steady_clock::now();
+            win->render();
+            win->swapBuffers();
+            auto stop = std::chrono::steady_clock::now();
+            elapsed_ = std::chrono::duration<double>{ stop - start }.count();
          }
          break;
 
@@ -262,8 +291,6 @@ ATOM window::registerClass(HINSTANCE hInstance)
    return RegisterClassEx(&wcex);
 }
 
-///////////////////////////////////////////////////////////
-
 void window::render()
 {
    // glClearColor(0.0f, 0.0f, 1.0f, 1.0f);	// rgb(33,150,243)
@@ -295,6 +322,11 @@ void window::render()
       throw std::runtime_error("Error: SkSurface::MakeRenderTarget returned null");
 
    SkCanvas* gpu_canvas = surface->getCanvas();
+
+   //if (_bkd_color.alpha > 0)
+   //   gpu_canvas->clear(SkColorSetARGB(_bkd_color.alpha, _bkd_color.red, _bkd_color.green, _bkd_color.blue));
+
+
    auto cnv = canvas{ gpu_canvas };
 
    cnv.pre_scale({ float(scale), float(scale) });
@@ -302,7 +334,6 @@ void window::render()
 
    // SkCanvas* canvas = surface->getCanvas();
 
-   // canvas->clear(SK_ColorRED);
 
    // SkPaint paint;
    // paint.setColor(SK_ColorBLUE);
@@ -335,6 +366,9 @@ namespace cycfi::artist
 {
    void init_paths()
    {
+      add_search_path(fs::current_path() / "resources");
+      add_search_path(fs::current_path() / "resources/fonts");
+      add_search_path(fs::current_path() / "resources/images");
    }
 }
 
@@ -348,7 +382,7 @@ int run_app(
 {
    SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE);
 
-   window win{ window_size, bkd };
+   window win{ window_size, bkd, animate };
 
    MSG msg;
    bool active = true;
@@ -363,22 +397,6 @@ int run_app(
          TranslateMessage(&msg);
          DispatchMessage(&msg);
       }
-      if (animate)
-      {
-         auto begin = std::chrono::steady_clock::now();
-         win.render();
-         win.swapBuffers();
-         auto end = std::chrono::steady_clock::now();
-         auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
-
-         acc = acc + elapsed;
-         if (++i == 100)
-         {
-             std::cout << acc / 100 << std::endl;
-             i = 0;
-             acc = 0;
-         }
-      }
    }
 
    return msg.wParam;
@@ -387,6 +405,33 @@ int run_app(
 void stop_app()
 {
    PostQuitMessage(0);
+}
+
+void print_elapsed(canvas& cnv, point br)
+{
+    static font open_sans = font_descr{ "Open Sans", 12 };
+    static int i = 0;
+    static float t_elapsed = 0;
+    static float c_elapsed = 0;
+
+    if (++i == 30)
+    {
+        i = 0;
+        c_elapsed = t_elapsed / 30;
+        t_elapsed = 0;
+    }
+    else
+    {
+        t_elapsed += elapsed_;
+    }
+
+    if (c_elapsed)
+    {
+        cnv.fill_style(rgba(220, 220, 220, 200));
+        cnv.font(open_sans);
+        cnv.text_align(cnv.right | cnv.bottom);
+        cnv.fill_text(std::to_string(1 / c_elapsed) + " fps", { br.x, br.y });
+    }
 }
 
 
