@@ -173,6 +173,65 @@ using offscreen_type = std::shared_ptr<picture>;
    return _refresh;
 }
 
+/*
+void test_draw(SkCanvas* canvas)
+{
+   sk_sp dest = SkImage::MakeFromEncoded(SkData::MakeFromFileName("/Users/joel/dev/cycfi/artist/cmake-build-debug/examples/composite_ops.app/Contents/Resources/dest.png"));
+   sk_sp src = SkImage::MakeFromEncoded(SkData::MakeFromFileName("/Users/joel/dev/cycfi/artist/cmake-build-debug/examples/composite_ops.app/Contents/Resources/src.png"));
+
+   SkScalar w = src->width();
+   SkScalar h = src->height();
+
+   canvas->clear(SkColorSetARGB(255, 255, 255, 255));
+
+   SkPaint paint;
+   canvas->clipRect(SkRect::MakeWH(w, h));
+   paint.setBlendMode(SkBlendMode::kSrcOver);
+   canvas->drawImage(dest, 0, 0, &paint);
+   paint.setBlendMode(SkBlendMode::kSrcIn);
+   canvas->drawImage(src, 0, 0, &paint);
+}
+*/
+
+static sk_sp<SkImage> make_bg() {
+
+   const uint32_t pix[4] = { 0xFFFFFFFF, 0xFFCCCCCC, 0xFFCCCCCC, 0xFFFFFFFF };
+   auto info = SkImageInfo::MakeN32Premul(2, 2);
+   SkPixmap pm = SkPixmap(info, pix, 2 * sizeof(uint32_t));
+   return SkImage::MakeRasterCopy({info, pix, 2 * sizeof(uint32_t)});
+}
+
+void test_draw(SkCanvas* canvas)
+{
+   auto lm = SkMatrix::MakeScale(16, 16);
+   auto bg = make_bg()->makeShader(SkTileMode::kRepeat, SkTileMode::kRepeat, &lm);
+   auto dest = SkImage::MakeFromEncoded(SkData::MakeFromFileName("/Users/joel/dev/cycfi/artist/cmake-build-debug/examples/composite_ops.app/Contents/Resources/dest.png"));
+   auto src = SkImage::MakeFromEncoded(SkData::MakeFromFileName("/Users/joel/dev/cycfi/artist/cmake-build-debug/examples/composite_ops.app/Contents/Resources/src.png"));
+
+   SkPaint paint;
+   paint.setShader(bg);
+   canvas->drawPaint(paint);
+   paint.setShader(nullptr);
+
+   SkScalar w = src->width(),
+            h = src->height();
+
+   canvas->drawImage(src, 0, 0, nullptr);
+   canvas->drawImage(dest, w, 0, nullptr);
+
+   auto combo = [&](SkScalar x, SkScalar y) {
+        paint.setBlendMode(SkBlendMode::kSrcOver);
+        canvas->drawImage(dest, x, y, &paint);
+        paint.setBlendMode(SkBlendMode::kSrcIn);
+        canvas->drawImage(src, x, y, &paint);
+    };
+
+   combo(0, h);
+   canvas->saveLayer(nullptr, nullptr);
+   combo(w, h);
+   canvas->restore();
+}
+
 - (void) drawInOpenGLContext : (NSOpenGLContext*) context
                  pixelFormat : (NSOpenGLPixelFormat*) pixelFormat
                 forLayerTime : (CFTimeInterval) timeInterval
@@ -209,9 +268,11 @@ using offscreen_type = std::shared_ptr<picture>;
       throw std::runtime_error("Error: SkSurface::MakeRenderTarget returned null");
 
    SkCanvas* gpu_canvas = surface->getCanvas();
-   auto cnv = canvas{ gpu_canvas };
-   cnv.pre_scale({ float(scale), float(scale) });
-   draw(cnv);
+   // auto cnv = canvas{ gpu_canvas };
+   // cnv.pre_scale({ float(scale), float(scale) });
+   // draw(cnv);
+
+   test_draw(gpu_canvas);
 
    [context flushBuffer];
    CGLUnlockContext(context.CGLContextObj);
