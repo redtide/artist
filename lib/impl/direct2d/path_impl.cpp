@@ -9,7 +9,7 @@ namespace cycfi::artist::d2d
 {
    geometry* path_impl::compute_fill()
    {
-      auto mode = fill_type(_mode);
+      auto mode = render_mode(_mode);
 
       if (_geom_gens.empty())
          return nullptr;
@@ -18,10 +18,19 @@ namespace cycfi::artist::d2d
       if (_fill_geom)
          return _fill_geom;
 
+      clear_geometries();
       for (auto const& gen : _geom_gens)
          _geometries.push_back(gen(mode));
       _fill_geom = make_group(_geometries, _mode);
       return _fill_geom;
+   }
+
+   void path_impl::clear_geometries()
+   {
+      for (auto& g : _geometries)
+         release(g);
+      _geometries.clear();
+      release(_fill_geom);
    }
 
    void path_impl::clear()
@@ -58,6 +67,7 @@ namespace cycfi::artist::d2d
       build_path();
       if (!empty())
       {
+         clear_geometries();
          auto mode = stroke_mode;
          for (auto const& gen : _geom_gens)
          {
@@ -70,13 +80,57 @@ namespace cycfi::artist::d2d
       }
    }
 
+   rect path_impl::fill_bounds(render_target& target)
+   {
+      rectf d2d_bounds;
+      build_path();
+      if (!empty())
+      {
+         matrix2x2f matrix;
+         target.GetTransform(&matrix);
+         auto geom = compute_fill();
+         geom->GetBounds(matrix, &d2d_bounds);
+      }
+      return {
+         d2d_bounds.left,
+         d2d_bounds.top,
+         d2d_bounds.right,
+         d2d_bounds.bottom,
+      };
+   }
+
+   rect path_impl::stroke_bounds(
+      render_target& target
+    , float line_width
+    , stroke_style* stroke_style
+   )
+   {
+      rectf d2d_bounds;
+      build_path();
+      if (!empty())
+      {
+         matrix2x2f matrix;
+         target.GetTransform(&matrix);
+         auto geom = compute_fill();
+         geom->GetWidenedBounds(
+            line_width, stroke_style, matrix, &d2d_bounds
+         );
+      }
+      return {
+         d2d_bounds.left,
+         d2d_bounds.top,
+         d2d_bounds.right,
+         d2d_bounds.bottom,
+      };
+   }
+
    void path_impl::begin_path()
    {
       if (_path_gens_state == path_started)
          end_path();
       _path_gens_state = path_started;
       _path_gens.push_back(
-         [](geometry_sink* sink, fill_type mode)
+         [](geometry_sink* sink, render_mode mode)
          {
             figure_begin flag =
                mode == path_impl::stroke_mode ?
@@ -92,7 +146,7 @@ namespace cycfi::artist::d2d
    {
       _path_gens_state = path_ended;
       _path_gens.push_back(
-         [close](geometry_sink* sink, fill_type mode)
+         [close](geometry_sink* sink, render_mode mode)
          {
             sink->EndFigure(
                     close ? figure_end_closed : figure_path_open
@@ -108,7 +162,7 @@ namespace cycfi::artist::d2d
       close_sub_path_if_open();
       _path_gens_state = path_started;
       _path_gens.push_back(
-         [p](geometry_sink* sink, fill_type mode)
+         [p](geometry_sink* sink, render_mode mode)
          {
             figure_begin flag =
                mode == path_impl::stroke_mode ?
@@ -129,7 +183,7 @@ namespace cycfi::artist::d2d
       }
 
       _path_gens.push_back(
-         [p](geometry_sink* sink, fill_type mode)
+         [p](geometry_sink* sink, render_mode mode)
          {
             sink->AddLine({ p.x, p.y });
          }
@@ -165,7 +219,7 @@ namespace cycfi::artist::d2d
       arc.arcSize = diff_angle > pi ? arc_large : arc_small;
 
       _path_gens.push_back(
-         [arc](geometry_sink* sink, fill_type mode)
+         [arc](geometry_sink* sink, render_mode mode)
          {
             sink->AddArc(arc);
          }
@@ -229,7 +283,7 @@ namespace cycfi::artist::d2d
       quad.point2 = { end.x, end.y };
 
       _path_gens.push_back(
-         [quad](geometry_sink* sink, fill_type mode)
+         [quad](geometry_sink* sink, render_mode mode)
          {
             sink->AddQuadraticBezier(quad);
          }
@@ -247,7 +301,7 @@ namespace cycfi::artist::d2d
       bezier.point3 = { end.x, end.y };
 
       _path_gens.push_back(
-         [bezier](geometry_sink* sink, fill_type mode)
+         [bezier](geometry_sink* sink, render_mode mode)
          {
             sink->AddBezier(bezier);
          }

@@ -16,17 +16,17 @@ namespace cycfi::artist::d2d
    {
    public:
 
-      enum fill_type
+      enum render_mode
       {
          fill_winding = fill_mode_winding,
          fill_odd_even = fill_mode_alternate,
          stroke_mode = -1
       };
 
-      using path_gen = std::function<void(geometry_sink* sink, fill_type mode)>;
+      using path_gen = std::function<void(geometry_sink* sink, render_mode mode)>;
       using path_gen_vector = std::vector<path_gen>;
 
-      using geometry_gen = std::function<geometry*(fill_type mode)>;
+      using geometry_gen = std::function<geometry*(render_mode mode)>;
       using geometry_gen_vector = std::vector<geometry_gen>;
 
       using geometry_vector = std::vector<geometry*>;
@@ -36,6 +36,7 @@ namespace cycfi::artist::d2d
 
       bool                 empty() const;
       void                 clear();
+      void                 clear_geometries();
       geometry*            compute_fill();
       void                 fill_rule(fill_mode mode);
 
@@ -54,6 +55,13 @@ namespace cycfi::artist::d2d
                             , brush* paint
                             , float line_width
                             , bool preserve
+                            , stroke_style* stroke_style
+                           );
+
+      rect                 fill_bounds(render_target& target);
+      rect                 stroke_bounds(
+                              render_target& target
+                            , float line_width
                             , stroke_style* stroke_style
                            );
 
