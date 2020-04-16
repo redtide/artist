@@ -90,13 +90,15 @@ namespace cycfi::artist::d2d
       geometry*            compute_fill();
 
       geometry_vector      _geometries;
-      geometry_gen_vector  _geometry_generators;
+      geometry_gen_vector  _geometry_gens;
       fill_mode            _mode = fill_mode_winding;
-      geometry_group*      _fill_geom = nullptr;
+      geometry_group*      _fill_geometry = nullptr;
       path_gen_vector      _path_gens;
       path_gen_state       _path_gens_state = path_ended;
       point                _start;
       point                _cp;
+      int                  _id = -1;
+      int                  _generation = 0;
    };
 
    ////////////////////////////////////////////////////////////////////////////
@@ -122,18 +124,19 @@ namespace cycfi::artist::d2d
    {
       for (auto& g : _geometries)
          release(g);
-      release(_fill_geom);
+      release(_fill_geometry);
    }
 
    inline bool path_impl::empty() const
    {
-      return _geometry_generators.empty();
+      return _geometry_gens.empty();
    }
 
    inline void path_impl::add_gen(geometry_gen&& gen)
    {
-      _geometry_generators.emplace_back(std::move(gen));
-      release(_fill_geom);
+      _geometry_gens.emplace_back(std::move(gen));
+      release(_fill_geometry);
+      ++_id;
    }
 
    inline void path_impl::add(rect r)
@@ -154,7 +157,7 @@ namespace cycfi::artist::d2d
    inline void path_impl::fill_rule(fill_mode mode)
    {
       _mode = mode;
-      release(_fill_geom);
+      release(_fill_geometry);
    }
 
    inline void path_impl::close_path()

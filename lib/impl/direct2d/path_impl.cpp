@@ -9,24 +9,29 @@ namespace cycfi::artist::d2d
 {
    geometry* path_impl::compute_fill()
    {
+      if (_fill_geometry && _id == _generation)
+         return _fill_geometry;
       auto mode = render_mode(_mode);
 
-      if (_geometry_generators.empty())
+      if (_geometry_gens.empty())
          return nullptr;
-      if (_geometry_generators.size() == 1)
-         return _geometry_generators[0](mode);
-      if (_fill_geom)
-         return _fill_geom;
+      if (_geometry_gens.size() == 1)
+         return _geometry_gens[0](mode);
+      if (_fill_geometry)
+         return _fill_geometry;
 
       compute_geometries(mode);
-      _fill_geom = make_group(_geometries, _mode);
-      return _fill_geom;
+      _fill_geometry = make_group(_geometries, _mode);
+      return _fill_geometry;
    }
 
    void path_impl::compute_geometries(render_mode mode)
    {
+      if (_id == _generation)
+         return;
+      _id = _generation;
       clear_geometries();
-      for (auto const& gen : _geometry_generators)
+      for (auto const& gen : _geometry_gens)
          _geometries.push_back(gen(mode));
    }
 
@@ -35,13 +40,13 @@ namespace cycfi::artist::d2d
       for (auto& g : _geometries)
          release(g);
       _geometries.clear();
-      release(_fill_geom);
+      release(_fill_geometry);
    }
 
    void path_impl::clear()
    {
       clear_geometries();
-      _geometry_generators.clear();
+      _geometry_gens.clear();
    }
 
    void path_impl::fill(
