@@ -44,11 +44,13 @@ namespace cycfi::artist
          );
 
          // Create a Direct2D render target.
+         ID2D1HwndRenderTarget* target;
          auto hr = get_factory().CreateHwndRenderTarget(
             D2D1::RenderTargetProperties(),
             D2D1::HwndRenderTargetProperties(_hwnd, size),
-            &_d2d_canvas
+            &target
          );
+         _d2d_canvas = target;
 
          if (!SUCCEEDED(hr))
             throw std::runtime_error{ "Error: Failed to create RenderTarget." };

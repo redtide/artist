@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <artist/canvas.hpp>
 #include <d2d1.h>
+#include "d2d1_1.h"
 #include <d2d1helper.h>
 #include <dwrite.h>
 #include <wincodec.h>
@@ -17,7 +18,7 @@
 
 namespace cycfi::artist
 {
-   using d2d_canvas = ID2D1HwndRenderTarget;
+   using d2d_canvas = ID2D1RenderTarget; // ID2D1HwndRenderTarget;
    using d2d_factory = ID2D1Factory;
 
    ////////////////////////////////////////////////////////////////////////////
@@ -48,6 +49,7 @@ namespace cycfi::artist
 
       HWND                 hwnd() const;
       d2d_canvas*          canvas() const;
+      void                 canvas(d2d_canvas* cnv);
 
       void                 state(canvas_state_impl* state);
       canvas_state_impl*   state() const;
@@ -173,17 +175,74 @@ namespace cycfi::artist
       return _d2d_canvas;
    };
 
+   inline void canvas_impl::canvas(d2d_canvas* cnv)
+   {
+      _d2d_canvas = cnv;
+   }
+
    template <typename Renderer>
    void canvas_impl::render(Renderer&& draw)
    {
       update();
 
-      if (!(_d2d_canvas->CheckWindowState() & D2D1_WINDOW_STATE_OCCLUDED))
+      // $$ for now $$$ need dynamic cast if (!(_d2d_canvas->CheckWindowState() & D2D1_WINDOW_STATE_OCCLUDED))
       {
          _d2d_canvas->BeginDraw();
-         if (_bkd.a > 0)
-            _d2d_canvas->Clear(_bkd);
+
+         // if (_bkd.a > 0)
+         //    _d2d_canvas->Clear(_bkd);
+         // draw(*_d2d_canvas);
+
+
+         _d2d_canvas->Clear(D2D1::ColorF(0.8f, 0.9f, 1.0f));
+
+         // COMs
+         ID2D1Bitmap *bitmap;
+         ID2D1BitmapRenderTarget *bitmapRenderTarget;
+         ID2D1DeviceContext *deviceContext;
+         ID2D1Effect *gaussianBlur;
+
+         // Create bitmapRenderTarget
+         _d2d_canvas->CreateCompatibleRenderTarget(&bitmapRenderTarget);
+
+         // Draw onto bitmapRenderTarget
+         bitmapRenderTarget->BeginDraw();
+
+         auto save = _d2d_canvas;
+         _d2d_canvas = bitmapRenderTarget;
          draw(*_d2d_canvas);
+         _d2d_canvas = save;
+
+         bitmapRenderTarget->EndDraw();
+
+         // Obtain _d2d_canvas's deviceContext
+         _d2d_canvas->QueryInterface(&deviceContext);
+
+         // Create and apply gaussian blur
+         deviceContext->CreateEffect(CLSID_D2D1GaussianBlur, &gaussianBlur);
+
+         bitmapRenderTarget->GetBitmap(&bitmap);
+         gaussianBlur->SetInput(0, bitmap);
+         gaussianBlur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
+         gaussianBlur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 5.0f);
+
+         // Draw resulting bitmap
+         deviceContext->DrawImage(
+            gaussianBlur,
+            D2D1_POINT_2F{ 150, 150 }, // targetOffset
+            D2D1_RECT_F{ 150, 150, 350, 350 }, // imageRectangle
+            D2D1_INTERPOLATION_MODE_LINEAR);
+
+         // Release
+         bitmap->Release();
+         bitmapRenderTarget->Release();
+         deviceContext->Release();
+         gaussianBlur->Release();
+
+
+
+
+
          auto hr = _d2d_canvas->EndDraw();
          if (hr == D2DERR_RECREATE_TARGET)
             discard();

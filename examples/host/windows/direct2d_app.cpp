@@ -10,6 +10,7 @@
 #pragma comment(lib, "dwrite")
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "shcore.lib")
+#pragma comment(lib, "dxguid.lib")
 
 #include "../../app.hpp"
 #include <canvas_impl.hpp>
@@ -32,7 +33,6 @@ public:
 
 private:
 
-   // HRESULT     create_device_independent_resources();
    void        render();
    void        resize(UINT width, UINT height);
 
@@ -50,11 +50,6 @@ private:
 
    canvas_impl_ptr         _canvas_impl;
    canvas_ptr              _canvas;
-   // state                   _state;
-
-   // IWICImagingFactory*     _pWICFactory = nullptr;
-   // IDWriteFactory*         _pDWriteFactory = nullptr;
-   // IDWriteTextFormat*      _pTextFormat = nullptr;
 };
 
 app::app(extent size, color bkd, bool animate)
@@ -104,34 +99,6 @@ app::app(extent size, color bkd, bool animate)
 
    if (SUCCEEDED(hr))
    {
-      // auto scale = GetDpiForWindow(hwnd) / 96.0;
-      // RECT frame;
-      // GetWindowRect(hwnd, &frame);
-      // frame.right = frame.left + (size.x * scale);
-      // frame.bottom = frame.top + (size.y * scale);
-
-      // MoveWindow(
-      //    hwnd, frame.left, frame.top,
-      //    frame.right - frame.left,
-      //    frame.bottom - frame.top,
-      //    false // repaint
-      // );
-
-      // size.x *= scale;
-      // size.y *= scale;
-
-      // RECT rect = { 0, 0, LONG(size.x), LONG(size.y) };
-      // AdjustWindowRectExForDpi(&rect, style, false, WS_EX_APPWINDOW, dpi);
-      // size.x = rect.right - rect.left;
-      // size.y = rect.bottom - rect.top;
-
-      // RECT primaryDisplaySize;
-      // SystemParametersInfo(SPI_GETWORKAREA, 0, &primaryDisplaySize, 0);
-      // auto pos_x = (primaryDisplaySize.right - size.x) / 2;
-      // auto pos_y = (primaryDisplaySize.bottom - size.y) / 2;
-
-      // SetWindowPos(hwnd, nullptr, pos_x, pos_y, size.x, size.y, SWP_SHOWWINDOW);
-
       _canvas_impl = std::make_unique<ca::canvas_impl>(hwnd, bkd);
       _canvas = std::make_unique<ca::canvas>(_canvas_impl.get());
 
@@ -145,51 +112,8 @@ app::app(extent size, color bkd, bool animate)
 
 app::~app()
 {
-   // ca::release(_pDWriteFactory);
-   // ca::release(_pTextFormat);
    CoUninitialize();
 }
-
-/*
-HRESULT app::create_device_independent_resources()
-{
-   static const WCHAR msc_fontName[] = L"Verdana";
-   static const FLOAT msc_fontSize = 50;
-   // ID2D1GeometrySink *pSink = nullptr;
-
-   // Create a DirectWrite factory.
-   auto hr = DWriteCreateFactory(
-      DWRITE_FACTORY_TYPE_SHARED,
-      __uuidof(_pDWriteFactory),
-      reinterpret_cast<IUnknown **>(&_pDWriteFactory)
-   );
-
-   if (SUCCEEDED(hr))
-   {
-      // Create a DirectWrite text format object.
-      hr = _pDWriteFactory->CreateTextFormat(
-         msc_fontName,
-         nullptr,
-         DWRITE_FONT_WEIGHT_NORMAL,
-         DWRITE_FONT_STYLE_NORMAL,
-         DWRITE_FONT_STRETCH_NORMAL,
-         msc_fontSize,
-         L"", //locale
-         &_pTextFormat
-      );
-   }
-   if (SUCCEEDED(hr))
-   {
-      // Center the text horizontally and vertically.
-      _pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-      _pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-   }
-
-   // ca::release(pSink);
-
-   return hr;
-}
-*/
 
 void app::run()
 {
@@ -237,7 +161,7 @@ void app::resize(UINT width, UINT height)
       // Note: This method can fail, but it's okay to ignore the
       // error here -- it will be repeated on the next call to
       // EndDraw.
-      _canvas_impl->canvas()->Resize(size);
+      // $$$ for now $$$ need dynamic cast _canvas_impl->canvas()->Resize(size);
    }
 }
 
