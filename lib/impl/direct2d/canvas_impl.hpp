@@ -181,6 +181,8 @@ namespace cycfi::artist
       if (!(_d2d_canvas->CheckWindowState() & D2D1_WINDOW_STATE_OCCLUDED))
       {
          _d2d_canvas->BeginDraw();
+         if (_bkd.a > 0)
+            _d2d_canvas->Clear(_bkd);
          draw(*_d2d_canvas);
          auto hr = _d2d_canvas->EndDraw();
          if (hr == D2DERR_RECREATE_TARGET)
