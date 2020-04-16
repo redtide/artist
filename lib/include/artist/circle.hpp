@@ -3,7 +3,7 @@
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
-#if !defined(ELEMENTS_CIRCLE_APRIL_17_2016)
+#if !defined(ARTIST_CIRCLE_APRIL_17_2016)
 #define ELEMENTS_CIRCLE_APRIL_17_2016
 
 #include <artist/rect.hpp>

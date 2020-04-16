@@ -3,8 +3,8 @@
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
-#if !defined(ELEMENTS_DETAIL_DIRECT_2D_PATH_IMPL_APR_13_2020)
-#define ELEMENTS_DETAIL_DIRECT_2D_PATH_IMPL_APR_13_2020
+#if !defined(ARTIST_D2D_PATH_IMPL_APR_13_2020)
+#define ARTIST_D2D_PATH_IMPL_APR_13_2020
 
 #include <context.hpp>
 #include <vector>

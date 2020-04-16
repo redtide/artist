@@ -3,8 +3,8 @@
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
-#if !defined(ELEMENTS_DETAIL_DIRECT_2D_CANVAS_IMPL_APR_12_2020)
-#define ELEMENTS_DETAIL_DIRECT_2D_CANVAS_IMPL_APR_12_2020
+#if !defined(ARTIST_D2D_CONTEXT_APR_12_2020)
+#define ARTIST_D2D_CONTEXT_APR_12_2020
 
 #include <windows.h>
 #include <artist/canvas.hpp>

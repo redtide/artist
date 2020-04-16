@@ -3,7 +3,7 @@
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
-#if !defined(ELEMENTS_TEST_APP_MARCH_12_2020)
+#if !defined(ARTIST_TEST_APP_MARCH_12_2020)
 #define ELEMENTS_TEST_APP_MARCH_12_2020
 
 #include <infra/support.hpp>
