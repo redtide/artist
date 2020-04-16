@@ -18,8 +18,9 @@
 
 namespace cycfi::artist::d2d
 {
-   using render_target = ID2D1RenderTarget; // ID2D1HwndRenderTarget;
-   using factory = ID2D1Factory;
+   using render_target        = ID2D1RenderTarget;
+   using hwnd_render_target   = ID2D1HwndRenderTarget;
+   using factory              = ID2D1Factory;
 
    ////////////////////////////////////////////////////////////////////////////
    // The main factory (singleton)
@@ -71,45 +72,48 @@ namespace cycfi::artist::d2d
    ////////////////////////////////////////////////////////////////////////////
    // Low-level D2D types
    ////////////////////////////////////////////////////////////////////////////
-   using brush = ID2D1Brush;
-   using solid_color_brush = ID2D1SolidColorBrush;
-   using linear_gradient_brush = ID2D1LinearGradientBrush;
-   using radial_gradient_brush = ID2D1RadialGradientBrush;
-   using geometry = ID2D1Geometry;
-   using geometry_group = ID2D1GeometryGroup;
-   using fill_mode = D2D1_FILL_MODE;
-   using rect_geometry = ID2D1RectangleGeometry;
-   using round_rect_geometry = ID2D1RoundedRectangleGeometry;
-   using ellipse_geometry = ID2D1EllipseGeometry;
-   using path_geometry = ID2D1PathGeometry;
-   using geometry_sink = ID2D1GeometrySink;
-   using figure_begin = D2D1_FIGURE_BEGIN;
-   using arc_segment = D2D1_ARC_SEGMENT;
-   using quadratic_bezier_segment = D2D1_QUADRATIC_BEZIER_SEGMENT;
-   using bezier_segment = D2D1_BEZIER_SEGMENT;
-   using stroke_style = ID2D1StrokeStyle;
-   using stroke_style_properties = D2D1_STROKE_STYLE_PROPERTIES;
-   using cap_style = D2D1_CAP_STYLE;
-   using line_join = D2D1_LINE_JOIN;
-   using gradient_stop = D2D1_GRADIENT_STOP;
-   using gradient_stop_collection = ID2D1GradientStopCollection;
-   using matrix2x2f = D2D1::Matrix3x2F;
+   using brush                         = ID2D1Brush;
+   using solid_color_brush             = ID2D1SolidColorBrush;
+   using linear_gradient_brush         = ID2D1LinearGradientBrush;
+   using radial_gradient_brush         = ID2D1RadialGradientBrush;
+   using geometry                      = ID2D1Geometry;
+   using geometry_group                = ID2D1GeometryGroup;
+   using fill_mode                     = D2D1_FILL_MODE;
+   using rect_geometry                 = ID2D1RectangleGeometry;
+   using round_rect_geometry           = ID2D1RoundedRectangleGeometry;
+   using ellipse_geometry              = ID2D1EllipseGeometry;
+   using path_geometry                 = ID2D1PathGeometry;
+   using geometry_sink                 = ID2D1GeometrySink;
+   using figure_begin                  = D2D1_FIGURE_BEGIN;
+   using arc_segment                   = D2D1_ARC_SEGMENT;
+   using quadratic_bezier_segment      = D2D1_QUADRATIC_BEZIER_SEGMENT;
+   using bezier_segment                = D2D1_BEZIER_SEGMENT;
+   using stroke_style                  = ID2D1StrokeStyle;
+   using stroke_style_properties       = D2D1_STROKE_STYLE_PROPERTIES;
+   using cap_style                     = D2D1_CAP_STYLE;
+   using line_join                     = D2D1_LINE_JOIN;
+   using gradient_stop                 = D2D1_GRADIENT_STOP;
+   using gradient_stop_collection      = ID2D1GradientStopCollection;
+   using matrix2x2f                    = D2D1::Matrix3x2F;
 
-   constexpr auto sweep_dir_ccw = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
-   constexpr auto sweep_dir_cw = D2D1_SWEEP_DIRECTION_CLOCKWISE;
-   constexpr auto arc_small = D2D1_ARC_SIZE_SMALL;
-   constexpr auto arc_large = D2D1_ARC_SIZE_LARGE;
-   constexpr auto figure_path_open = D2D1_FIGURE_END_OPEN;
-   constexpr auto figure_end_closed = D2D1_FIGURE_END_CLOSED;
-   constexpr auto figure_begin_hollow = D2D1_FIGURE_BEGIN_HOLLOW;
-   constexpr auto figure_begin_filled = D2D1_FIGURE_BEGIN_FILLED;
+   constexpr auto sweep_dir_ccw        = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
+   constexpr auto sweep_dir_cw         = D2D1_SWEEP_DIRECTION_CLOCKWISE;
+   constexpr auto arc_small            = D2D1_ARC_SIZE_SMALL;
+   constexpr auto arc_large            = D2D1_ARC_SIZE_LARGE;
+   constexpr auto figure_path_open     = D2D1_FIGURE_END_OPEN;
+   constexpr auto figure_end_closed    = D2D1_FIGURE_END_CLOSED;
+   constexpr auto figure_begin_hollow  = D2D1_FIGURE_BEGIN_HOLLOW;
+   constexpr auto figure_begin_filled  = D2D1_FIGURE_BEGIN_FILLED;
 
-   constexpr auto line_join_miter = D2D1_LINE_JOIN_MITER;
-   constexpr auto line_join_bevel = D2D1_LINE_JOIN_BEVEL;
-   constexpr auto line_join_round = D2D1_LINE_JOIN_ROUND;
-   constexpr auto cap_style_flat = D2D1_CAP_STYLE_FLAT;
-   constexpr auto cap_style_square = D2D1_CAP_STYLE_SQUARE;
-   constexpr auto cap_style_round = D2D1_CAP_STYLE_ROUND;
+   constexpr auto line_join_miter      = D2D1_LINE_JOIN_MITER;
+   constexpr auto line_join_bevel      = D2D1_LINE_JOIN_BEVEL;
+   constexpr auto line_join_round      = D2D1_LINE_JOIN_ROUND;
+   constexpr auto cap_style_flat       = D2D1_CAP_STYLE_FLAT;
+   constexpr auto cap_style_square     = D2D1_CAP_STYLE_SQUARE;
+   constexpr auto cap_style_round      = D2D1_CAP_STYLE_ROUND;
+
+   constexpr auto fill_mode_winding    = D2D1_FILL_MODE_WINDING;
+   constexpr auto fill_mode_alternate  = D2D1_FILL_MODE_ALTERNATE;
 
    ////////////////////////////////////////////////////////////////////////////
    // Low-level utilities
@@ -118,8 +122,8 @@ namespace cycfi::artist::d2d
    inline void release(Interface*& ptr);
 
    brush* make_paint(color c, render_target& cn);
-   brush* make_paint(canvas::linear_gradient const& , render_target& cnv);
-   brush* make_paint(canvas::radial_gradient const& rg, render_target& cnv);
+   brush* make_paint(canvas::linear_gradient const& lg, render_target& target);
+   brush* make_paint(canvas::radial_gradient const& rg, render_target& target);
 
    template <typename Container>
    geometry_group* make_group(Container const& c);
@@ -138,9 +142,7 @@ namespace cycfi::artist::d2d
    }
 
    template <typename Container>
-   inline geometry_group* make_group(
-           Container const& c, fill_mode mode
-   )
+   inline geometry_group* make_group(Container const& c, fill_mode mode)
    {
       geometry_group* group = nullptr;
       auto hr = get_factory().CreateGeometryGroup(
@@ -189,11 +191,11 @@ namespace cycfi::artist::d2d
       {
          _target->BeginDraw();
 
-         // if (_bkd.a > 0)
-         //    _d2d_canvas->Clear(_bkd);
-         // draw(*_d2d_canvas);
+         if (_bkd.a > 0)
+            _target->Clear(_bkd);
+         draw(*_target);
 
-
+/*
          _target->Clear(D2D1::ColorF(0.8f, 0.9f, 1.0f));
 
          // COMs
@@ -238,7 +240,7 @@ namespace cycfi::artist::d2d
          bitmapRenderTarget->Release();
          deviceContext->Release();
          gaussianBlur->Release();
-
+*/
 
 
 

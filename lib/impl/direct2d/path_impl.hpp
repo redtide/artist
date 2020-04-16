@@ -18,8 +18,8 @@ namespace cycfi::artist::d2d
 
       enum fill_type
       {
-         fill_winding = D2D1_FILL_MODE_WINDING,
-         fill_odd_even = D2D1_FILL_MODE_ALTERNATE,
+         fill_winding = fill_mode_winding,
+         fill_odd_even = fill_mode_alternate,
          stroke_mode = -1
       };
 
@@ -36,7 +36,7 @@ namespace cycfi::artist::d2d
 
       bool                 empty() const;
       void                 clear();
-      geometry*        compute_fill();
+      geometry*            compute_fill();
       void                 fill_rule(fill_mode mode);
 
       void                 add(rect r);
@@ -44,13 +44,13 @@ namespace cycfi::artist::d2d
       void                 add(circle c);
 
       void                 fill(
-              render_target& cnv
+                              render_target& target
                             , brush* paint
                             , bool preserve
                            );
 
       void                 stroke(
-              render_target& cnv
+                              render_target& target
                             , brush* paint
                             , float line_width
                             , bool preserve
@@ -82,8 +82,8 @@ namespace cycfi::artist::d2d
 
       geometry_vector      _geometries;
       geometry_gen_vector  _geom_gens;
-      fill_mode        _mode = D2D1_FILL_MODE_WINDING;
-      geometry_group*  _fill_geom = nullptr;
+      fill_mode            _mode = fill_mode_winding;
+      geometry_group*      _fill_geom = nullptr;
       path_gen_vector      _path_gens;
       path_gen_state       _path_gens_state = path_ended;
       point                _start;
@@ -93,16 +93,16 @@ namespace cycfi::artist::d2d
    ////////////////////////////////////////////////////////////////////////////
    // Low level utils
    ////////////////////////////////////////////////////////////////////////////
-   rect_geometry*               make_rect(rect r);
-   round_rect_geometry*         make_round_rect(rect r, float radius);
-   ellipse_geometry*            make_circle(circle c);
-   stroke_style*       make_stroke_style(
+   rect_geometry*          make_rect(rect r);
+   round_rect_geometry*    make_round_rect(rect r, float radius);
+   ellipse_geometry*       make_circle(circle c);
+   stroke_style*           make_stroke_style(
                               canvas::line_cap_enum line_cap
                             , canvas::join_enum join
                             , float miter_limit
                            );
 
-   path_geometry*               make_path();
+   path_geometry*          make_path();
    geometry_sink*          start(path_geometry* path);
    void                    stop(geometry_sink* sink);
 

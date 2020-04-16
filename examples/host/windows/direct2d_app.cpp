@@ -45,11 +45,11 @@ private:
 
 private:
 
-   using canvas_impl_ptr = std::unique_ptr<ca::context>;
+   using context_ptr = std::unique_ptr<ca::context>;
    using canvas_ptr = std::unique_ptr<ca::canvas>;
 
-   canvas_impl_ptr         _canvas_impl;
-   canvas_ptr              _canvas;
+   context_ptr       _canvas_impl;
+   canvas_ptr        _canvas;
 };
 
 app::app(extent size, color bkd, bool animate)
@@ -132,20 +132,6 @@ void app::render()
       [this](auto&)
       {
          draw(*_canvas);
-
-
-
-         // static const WCHAR sc_helloWorld[] = L"Hello, World!";
-         // auto size = canvas.GetSize();
-         // canvas.SetTransform(D2D1::Matrix3x2F::Identity());
-         // canvas.Clear(D2D1::ColorF(D2D1::ColorF::White));
-         // canvas.DrawText(
-         //    sc_helloWorld,
-         //    ARRAYSIZE(sc_helloWorld) - 1,
-         //    _pTextFormat,
-         //    D2D1::RectF(0, 0, size.width, size.height),
-         //    _state._pBlackBrush
-         // );
       }
    );
 }
@@ -178,7 +164,7 @@ LRESULT CALLBACK app::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
          hwnd,
          GWLP_USERDATA,
          reinterpret_cast<LONG_PTR>(_app)
-         );
+      );
 
       result = 1;
    }
@@ -196,7 +182,7 @@ LRESULT CALLBACK app::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       {
          switch (message)
          {
-         case WM_SIZE:
+            case WM_SIZE:
                {
                   UINT width = LOWORD(lParam);
                   UINT height = HIWORD(lParam);
@@ -206,8 +192,8 @@ LRESULT CALLBACK app::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                result = 0;
                break;
 
-         case WM_PAINT:
-         case WM_DISPLAYCHANGE:
+            case WM_PAINT:
+            case WM_DISPLAYCHANGE:
                {
                   PAINTSTRUCT ps;
                   BeginPaint(hwnd, &ps);
@@ -219,7 +205,7 @@ LRESULT CALLBACK app::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                result = 0;
                break;
 
-         case WM_DESTROY:
+            case WM_DESTROY:
                {
                   PostQuitMessage(0);
                }

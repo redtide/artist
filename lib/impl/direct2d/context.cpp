@@ -106,12 +106,12 @@ namespace cycfi::artist::d2d
       }
    }
 
-   brush* make_paint(canvas::linear_gradient const& lg, render_target& cnv)
+   brush* make_paint(canvas::linear_gradient const& lg, render_target& target)
    {
-      auto stops = make_stops(lg, cnv);
+      auto stops = make_stops(lg, target);
 
       linear_gradient_brush* result = nullptr;
-      auto hr = cnv.CreateLinearGradientBrush(
+      auto hr = target.CreateLinearGradientBrush(
          D2D1::LinearGradientBrushProperties(
             D2D1::Point2F(lg.start.x, lg.start.y),
             D2D1::Point2F(lg.end.x, lg.end.y)
@@ -124,12 +124,12 @@ namespace cycfi::artist::d2d
       return result;
    }
 
-   brush* make_paint(canvas::radial_gradient const& rg, render_target& cnv)
+   brush* make_paint(canvas::radial_gradient const& rg, render_target& target)
    {
-      auto stops = make_stops(rg, cnv);
+      auto stops = make_stops(rg, target);
 
       radial_gradient_brush* result = nullptr;
-      auto hr = cnv.CreateRadialGradientBrush(
+      auto hr = target.CreateRadialGradientBrush(
         D2D1::RadialGradientBrushProperties(
             D2D1::Point2F(rg.c1.x, rg.c1.y),
             D2D1::Point2F(rg.c2.x-rg.c1.x, rg.c2.y-rg.c1.y),

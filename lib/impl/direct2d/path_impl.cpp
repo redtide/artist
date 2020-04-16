@@ -15,7 +15,6 @@ namespace cycfi::artist::d2d
          return nullptr;
       if (_geom_gens.size() == 1)
          return _geom_gens[0](mode);
-
       if (_fill_geom)
          return _fill_geom;
 
@@ -35,21 +34,21 @@ namespace cycfi::artist::d2d
    }
 
    void path_impl::fill(
-           render_target& cnv
+      render_target& target
     , brush* paint
     , bool preserve)
    {
       build_path();
       if (!empty())
       {
-         cnv.FillGeometry(compute_fill(), paint, nullptr);
+         target.FillGeometry(compute_fill(), paint, nullptr);
          if (!preserve)
             clear();
       }
    }
 
    void path_impl::stroke(
-           render_target& cnv
+      render_target& target
     , brush* paint
     , float line_width
     , bool preserve
@@ -64,7 +63,7 @@ namespace cycfi::artist::d2d
          {
             auto p = gen(mode);
             _geometries.push_back(p);
-            cnv.DrawGeometry(p, paint, line_width, stroke_style);
+            target.DrawGeometry(p, paint, line_width, stroke_style);
          }
          if (!preserve)
             clear();
