@@ -81,17 +81,22 @@ app::app(extent size, color bkd, bool animate)
    // obtain the system DPI and use it to scale the window size.
    FLOAT dpiX, dpiY;
    ca::get_factory().GetDesktopDpi(&dpiX, &dpiY);
+   auto style = /*WS_OVERLAPPEDWINDOW; */ WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+
+   size.x *= dpiX / 96.f;
+   size.y *= dpiY / 96.f;
+
+   RECT rect = { 0, 0, LONG(size.x), LONG(size.y) };
+   AdjustWindowRectExForDpi(&rect, style, false, WS_EX_APPWINDOW, dpiX);
 
    auto hwnd = CreateWindow(
       L"D2DDemoApp",
       L"Direct2D Demo Application",
-      WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT,
-      CW_USEDEFAULT,
-      static_cast<UINT>(ceil(size.x * dpiX / 96.f)),
-      static_cast<UINT>(ceil(size.y * dpiY / 96.f)),
-      nullptr,
-      nullptr,
+      style,
+      CW_USEDEFAULT, CW_USEDEFAULT,       // default position
+      rect.right-rect.left,               // width
+      rect.bottom-rect.top,               // height
+      nullptr, nullptr,                   // parent window, menu
       HINST_THISCOMPONENT,
       this
       );
@@ -99,6 +104,34 @@ app::app(extent size, color bkd, bool animate)
 
    if (SUCCEEDED(hr))
    {
+      // auto scale = GetDpiForWindow(hwnd) / 96.0;
+      // RECT frame;
+      // GetWindowRect(hwnd, &frame);
+      // frame.right = frame.left + (size.x * scale);
+      // frame.bottom = frame.top + (size.y * scale);
+
+      // MoveWindow(
+      //    hwnd, frame.left, frame.top,
+      //    frame.right - frame.left,
+      //    frame.bottom - frame.top,
+      //    false // repaint
+      // );
+
+      // size.x *= scale;
+      // size.y *= scale;
+
+      // RECT rect = { 0, 0, LONG(size.x), LONG(size.y) };
+      // AdjustWindowRectExForDpi(&rect, style, false, WS_EX_APPWINDOW, dpi);
+      // size.x = rect.right - rect.left;
+      // size.y = rect.bottom - rect.top;
+
+      // RECT primaryDisplaySize;
+      // SystemParametersInfo(SPI_GETWORKAREA, 0, &primaryDisplaySize, 0);
+      // auto pos_x = (primaryDisplaySize.right - size.x) / 2;
+      // auto pos_y = (primaryDisplaySize.bottom - size.y) / 2;
+
+      // SetWindowPos(hwnd, nullptr, pos_x, pos_y, size.x, size.y, SWP_SHOWWINDOW);
+
       _canvas_impl = std::make_unique<ca::canvas_impl>(hwnd, bkd);
       _canvas = std::make_unique<ca::canvas>(_canvas_impl.get());
 

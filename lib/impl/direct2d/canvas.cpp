@@ -15,7 +15,7 @@ namespace cycfi::artist
    class canvas::canvas_state : public canvas_state_impl
    {
    public:
-
+                        canvas_state();
                         ~canvas_state();
 
       virtual void      update(d2d_canvas& cnv);
@@ -40,6 +40,10 @@ namespace cycfi::artist
       void              line_join(join_enum join);
       void              miter_limit(float limit = 10);
 
+      void              translate(point p, d2d_canvas& cnv);
+      void              rotate(float rad, d2d_canvas& cnv);
+      void              scale(point p, d2d_canvas& cnv);
+
    private:
 
       void              update_stroke_style();
@@ -50,18 +54,24 @@ namespace cycfi::artist
        , canvas::radial_gradient
       >;
 
-      artist::path      _path;               // for now
+      artist::path      _path;
       paint_info        _fill_info;
-      d2d_paint*        _fill_paint;         // for now
+      d2d_paint*        _fill_paint = nullptr;
       paint_info        _stroke_info;
-      d2d_paint*        _stroke_paint;       // for now
-      float             _line_width = 1;     // for now
+      d2d_paint*        _stroke_paint = nullptr;
+      float             _line_width = 1;
+      d2d_matrix        _matrix;
 
       d2d_stroke_style* _stroke_style = nullptr;
       line_cap_enum     _line_cap = line_cap_enum::butt;
       join_enum         _join = join_enum::miter_join;
       float             _miter_limit = 10;
    };
+
+   canvas::canvas_state::canvas_state()
+    : _matrix{ d2d_matrix::Identity() }
+   {
+   }
 
    canvas::canvas_state::~canvas_state()
    {
@@ -126,11 +136,13 @@ namespace cycfi::artist
 
    void canvas::canvas_state::fill(d2d_canvas& cnv, bool preserve)
    {
+      cnv.SetTransform(_matrix);
       _path.impl()->fill(cnv, _fill_paint, preserve);
    }
 
    void canvas::canvas_state::stroke(d2d_canvas& cnv, bool preserve)
    {
+      cnv.SetTransform(_matrix);
       _path.impl()->stroke(
          cnv, _stroke_paint, _line_width, preserve, _stroke_style
       );
@@ -171,6 +183,24 @@ namespace cycfi::artist
       );
    }
 
+   void canvas::canvas_state::translate(point p, d2d_canvas& cnv)
+   {
+      _matrix = _matrix.Translation({ p.x, p.y }) * _matrix;
+      // cnv.SetTransform(_matrix);
+   }
+
+   void canvas::canvas_state::rotate(float rad, d2d_canvas& cnv)
+   {
+      _matrix = _matrix.Rotation(rad * 180 / pi, { 0, 0 }) * _matrix;
+      // cnv.SetTransform(_matrix);
+   }
+
+   void canvas::canvas_state::scale(point p, d2d_canvas& cnv)
+   {
+      _matrix = _matrix.Scale({ p.x, p.y }, { 0, 0 }) * _matrix;
+      // cnv.SetTransform(_matrix);
+   }
+
    canvas::canvas(canvas_impl_ptr context_)
     : _context{ context_ }
     , _state{ std::make_unique<canvas_state>() }
@@ -188,14 +218,17 @@ namespace cycfi::artist
 
    void canvas::translate(point p)
    {
+      _state->translate(p, *_context->canvas());
    }
 
    void canvas::rotate(float rad)
    {
+      _state->rotate(rad, *_context->canvas());
    }
 
    void canvas::scale(point p)
    {
+      _state->scale(p, *_context->canvas());
    }
 
    void canvas::save()

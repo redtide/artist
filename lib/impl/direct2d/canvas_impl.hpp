@@ -91,6 +91,7 @@ namespace cycfi::artist
    using d2d_line_join = D2D1_LINE_JOIN;
    using d2d_gradient_stop = D2D1_GRADIENT_STOP;
    using d2d_gradient_stop_collection = ID2D1GradientStopCollection;
+   using d2d_matrix = D2D1::Matrix3x2F;
 
    constexpr auto d2d_ccw = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
    constexpr auto d2d_cw = D2D1_SWEEP_DIRECTION_CLOCKWISE;
