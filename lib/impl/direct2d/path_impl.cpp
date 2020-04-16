@@ -11,18 +11,23 @@ namespace cycfi::artist::d2d
    {
       auto mode = render_mode(_mode);
 
-      if (_geom_gens.empty())
+      if (_geometry_generators.empty())
          return nullptr;
-      if (_geom_gens.size() == 1)
-         return _geom_gens[0](mode);
+      if (_geometry_generators.size() == 1)
+         return _geometry_generators[0](mode);
       if (_fill_geom)
          return _fill_geom;
 
-      clear_geometries();
-      for (auto const& gen : _geom_gens)
-         _geometries.push_back(gen(mode));
+      compute_geometries(mode);
       _fill_geom = make_group(_geometries, _mode);
       return _fill_geom;
+   }
+
+   void path_impl::compute_geometries(render_mode mode)
+   {
+      clear_geometries();
+      for (auto const& gen : _geometry_generators)
+         _geometries.push_back(gen(mode));
    }
 
    void path_impl::clear_geometries()
@@ -35,11 +40,8 @@ namespace cycfi::artist::d2d
 
    void path_impl::clear()
    {
-      for (auto& g : _geometries)
-         release(g);
-      _geometries.clear();
-      _geom_gens.clear();
-      release(_fill_geom);
+      clear_geometries();
+      _geometry_generators.clear();
    }
 
    void path_impl::fill(
@@ -67,14 +69,9 @@ namespace cycfi::artist::d2d
       build_path();
       if (!empty())
       {
-         clear_geometries();
-         auto mode = stroke_mode;
-         for (auto const& gen : _geom_gens)
-         {
-            auto p = gen(mode);
-            _geometries.push_back(p);
-            target.DrawGeometry(p, paint, line_width, stroke_style);
-         }
+         compute_geometries(stroke_mode);
+         for (auto geom : _geometries)
+            target.DrawGeometry(geom, paint, line_width, stroke_style);
          if (!preserve)
             clear();
       }
