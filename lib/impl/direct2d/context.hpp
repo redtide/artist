@@ -196,51 +196,104 @@ namespace cycfi::artist::d2d
             _target->Clear(_bkd);
          draw(*_target);
 
+
+
+
 /*
          _target->Clear(D2D1::ColorF(0.8f, 0.9f, 1.0f));
 
          // COMs
-         ID2D1Bitmap *bitmap;
-         ID2D1BitmapRenderTarget *bitmapRenderTarget;
-         ID2D1DeviceContext *deviceContext;
-         ID2D1Effect *gaussianBlur;
+         ID2D1Bitmap* bm;
+         ID2D1BitmapRenderTarget* bm_target;
+         ID2D1DeviceContext* dc;
+         ID2D1Effect* blur;
 
-         // Create bitmapRenderTarget
-         _target->CreateCompatibleRenderTarget(&bitmapRenderTarget);
+         // Create bitmap target
+         _target->CreateCompatibleRenderTarget(&bm_target);
 
-         // Draw onto bitmapRenderTarget
-         bitmapRenderTarget->BeginDraw();
+         // Draw onto bm_target
+         bm_target->BeginDraw();
 
          auto save = _target;
-         _target = bitmapRenderTarget;
+         _target = bm_target;
          draw(*_target);
          _target = save;
 
-         bitmapRenderTarget->EndDraw();
+         bm_target->EndDraw();
 
-         // Obtain _d2d_canvas's deviceContext
-         _target->QueryInterface(&deviceContext);
+         // Obtain _target's device context
+         _target->QueryInterface(&dc);
 
          // Create and apply gaussian blur
-         deviceContext->CreateEffect(CLSID_D2D1GaussianBlur, &gaussianBlur);
+         dc->CreateEffect(CLSID_D2D1Shadow, &blur);
 
-         bitmapRenderTarget->GetBitmap(&bitmap);
-         gaussianBlur->SetInput(0, bitmap);
-         gaussianBlur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
-         gaussianBlur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 5.0f);
+         bm_target->GetBitmap(&bm);
+         blur->SetInput(0, bm);
+         blur->SetValue(D2D1_SHADOW_PROP_BLUR_STANDARD_DEVIATION, 5.0f);
+         blur->SetValue(D2D1_SHADOW_PROP_OPTIMIZATION, D2D1_DIRECTIONALBLUR_OPTIMIZATION_SPEED);
 
          // Draw resulting bitmap
-         deviceContext->DrawImage(
-            gaussianBlur,
+         dc->DrawImage(
+            blur,
             D2D1_POINT_2F{ 150, 150 }, // targetOffset
             D2D1_RECT_F{ 150, 150, 350, 350 }, // imageRectangle
             D2D1_INTERPOLATION_MODE_LINEAR);
 
          // Release
-         bitmap->Release();
-         bitmapRenderTarget->Release();
-         deviceContext->Release();
-         gaussianBlur->Release();
+         bm->Release();
+         bm_target->Release();
+         dc->Release();
+         blur->Release();
+*/
+
+
+
+
+/*
+         _target->Clear(D2D1::ColorF(0.8f, 0.9f, 1.0f));
+
+         // COMs
+         ID2D1Bitmap* bm;
+         ID2D1BitmapRenderTarget* bm_target;
+         ID2D1DeviceContext* dc;
+         ID2D1Effect* blur;
+
+         // Create bitmap target
+         _target->CreateCompatibleRenderTarget(&bm_target);
+
+         // Draw onto bm_target
+         bm_target->BeginDraw();
+
+         auto save = _target;
+         _target = bm_target;
+         draw(*_target);
+         _target = save;
+
+         bm_target->EndDraw();
+
+         // Obtain _target's device context
+         _target->QueryInterface(&dc);
+
+         // Create and apply gaussian blur
+         dc->CreateEffect(CLSID_D2D1GaussianBlur, &blur);
+
+         bm_target->GetBitmap(&bm);
+         blur->SetInput(0, bm);
+         blur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
+         blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 5.0f);
+
+         // Draw resulting bitmap
+         dc->DrawImage(
+            blur,
+            D2D1_POINT_2F{ 150, 150 }, // targetOffset
+            D2D1_RECT_F{ 150, 150, 350, 350 }, // imageRectangle
+            D2D1_INTERPOLATION_MODE_LINEAR);
+
+         // Release
+         bm->Release();
+         bm_target->Release();
+         dc->Release();
+         blur->Release();
 */
 
 

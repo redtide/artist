@@ -32,8 +32,8 @@ namespace cycfi::artist
       void              stroke_paint(T const& info, render_target& target);
 
       void              line_width(float w);
-      void              fill(render_target& cnv, bool preserve);
-      void              stroke(render_target& cnv, bool preserve);
+      void              fill(context& ctx, bool preserve);
+      void              stroke(context& ctx, bool preserve);
 
       using line_cap_enum = canvas::line_cap_enum;
       using join_enum = canvas::join_enum;
@@ -136,17 +136,19 @@ namespace cycfi::artist
       _line_width = w;
    }
 
-   void canvas::canvas_state::fill(render_target& cnv, bool preserve)
+   void canvas::canvas_state::fill(context& ctx, bool preserve)
    {
-      cnv.SetTransform(_matrix);
-      _path.impl()->fill(cnv, _fill_paint, preserve);
+      auto target = ctx.target();
+      target->SetTransform(_matrix);
+      _path.impl()->fill(*target, _fill_paint, preserve);
    }
 
-   void canvas::canvas_state::stroke(render_target& cnv, bool preserve)
+   void canvas::canvas_state::stroke(context& ctx, bool preserve)
    {
-      cnv.SetTransform(_matrix);
+      auto target = ctx.target();
+      target->SetTransform(_matrix);
       _path.impl()->stroke(
-         cnv, _stroke_paint, _line_width, preserve, _stroke_style
+         *target, _stroke_paint, _line_width, preserve, _stroke_style
       );
    }
 
@@ -250,22 +252,22 @@ namespace cycfi::artist
 
    void canvas::fill()
    {
-      _state->fill(*_context->target(), false);
+      _state->fill(*_context, false);
    }
 
    void canvas::fill_preserve()
    {
-      _state->fill(*_context->target(), true);
+      _state->fill(*_context, true);
    }
 
    void canvas::stroke()
    {
-      _state->stroke(*_context->target(), false);
+      _state->stroke(*_context, false);
    }
 
    void canvas::stroke_preserve()
    {
-      _state->stroke(*_context->target(), true);
+      _state->stroke(*_context, true);
    }
 
    void canvas::clip()
