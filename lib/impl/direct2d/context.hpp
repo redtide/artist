@@ -16,100 +16,100 @@
 #include <memory>
 #include <stdexcept>
 
-namespace cycfi::artist
+namespace cycfi::artist::d2d
 {
-   using d2d_canvas = ID2D1RenderTarget; // ID2D1HwndRenderTarget;
-   using d2d_factory = ID2D1Factory;
+   using render_target = ID2D1RenderTarget; // ID2D1HwndRenderTarget;
+   using factory = ID2D1Factory;
 
    ////////////////////////////////////////////////////////////////////////////
    // The main factory (singleton)
    ////////////////////////////////////////////////////////////////////////////
-   d2d_factory& get_factory();
+   factory& get_factory();
 
    ////////////////////////////////////////////////////////////////////////////
    // Abstract canvas state implementation
    ////////////////////////////////////////////////////////////////////////////
-   struct canvas_state_impl
+   struct context_state
    {
-      virtual void         update(d2d_canvas& cnv) = 0;
+      virtual void         update(render_target& cnv) = 0;
       virtual void         discard() = 0;
    };
 
    ////////////////////////////////////////////////////////////////////////////
    // Main (low-level) canvas implementation
    ////////////////////////////////////////////////////////////////////////////
-   struct canvas_impl
+   struct context
    {
    public:
-                           canvas_impl(HWND hwnd, color bkd);
-                           ~canvas_impl();
+                           context(HWND hwnd, color bkd);
+                           ~context();
 
                            template <typename Renderer>
       void                 render(Renderer&& draw);
 
       HWND                 hwnd() const;
-      d2d_canvas*          canvas() const;
-      void                 canvas(d2d_canvas* cnv);
+      render_target*       target() const;
+      void                 target(render_target* cnv);
 
-      void                 state(canvas_state_impl* state);
-      canvas_state_impl*   state() const;
+      void                 state(context_state* state);
+      context_state*       state() const;
 
    private:
 
-                           canvas_impl(canvas_impl const&) = delete;
-      canvas_impl&         operator=(canvas_impl const&) = delete;
+                           context(context const&) = delete;
+      context&             operator=(context const&) = delete;
 
       void                 update();
       void                 discard();
 
       HWND                 _hwnd = nullptr;
-      d2d_canvas*          _d2d_canvas = nullptr;
+      render_target*       _target = nullptr;
       D2D1::ColorF         _bkd;
-      canvas_state_impl*   _state = nullptr;
+      context_state*       _state = nullptr;
    };
 
    ////////////////////////////////////////////////////////////////////////////
    // Low-level D2D types
    ////////////////////////////////////////////////////////////////////////////
-   using d2d_paint = ID2D1Brush;
-   using d2d_solid_color = ID2D1SolidColorBrush;
-   using d2d_linear_gradient = ID2D1LinearGradientBrush;
-   using d2d_radial_gradient = ID2D1RadialGradientBrush;
-   using d2d_geometry = ID2D1Geometry;
-   using d2d_geometry_group = ID2D1GeometryGroup;
-   using d2d_fill_mode = D2D1_FILL_MODE;
-   using d2d_rect = ID2D1RectangleGeometry;
-   using d2d_round_rect = ID2D1RoundedRectangleGeometry;
-   using d2d_ellipse = ID2D1EllipseGeometry;
-   using d2d_path = ID2D1PathGeometry;
-   using d2d_path_sink = ID2D1GeometrySink;
-   using d2d_figure_begin = D2D1_FIGURE_BEGIN;
-   using d2d_arc_segment = D2D1_ARC_SEGMENT;
-   using d2d_quad_segment = D2D1_QUADRATIC_BEZIER_SEGMENT;
-   using d2d_bezier_segment = D2D1_BEZIER_SEGMENT;
-   using d2d_stroke_style = ID2D1StrokeStyle;
-   using d2d_stroke_style_properties = D2D1_STROKE_STYLE_PROPERTIES;
-   using d2d_cap_style = D2D1_CAP_STYLE;
-   using d2d_line_join = D2D1_LINE_JOIN;
-   using d2d_gradient_stop = D2D1_GRADIENT_STOP;
-   using d2d_gradient_stop_collection = ID2D1GradientStopCollection;
-   using d2d_matrix = D2D1::Matrix3x2F;
+   using brush = ID2D1Brush;
+   using solid_color_brush = ID2D1SolidColorBrush;
+   using linear_gradient_brush = ID2D1LinearGradientBrush;
+   using radial_gradient_brush = ID2D1RadialGradientBrush;
+   using geometry = ID2D1Geometry;
+   using geometry_group = ID2D1GeometryGroup;
+   using fill_mode = D2D1_FILL_MODE;
+   using rect_geometry = ID2D1RectangleGeometry;
+   using round_rect_geometry = ID2D1RoundedRectangleGeometry;
+   using ellipse_geometry = ID2D1EllipseGeometry;
+   using path_geometry = ID2D1PathGeometry;
+   using geometry_sink = ID2D1GeometrySink;
+   using figure_begin = D2D1_FIGURE_BEGIN;
+   using arc_segment = D2D1_ARC_SEGMENT;
+   using quadratic_bezier_segment = D2D1_QUADRATIC_BEZIER_SEGMENT;
+   using bezier_segment = D2D1_BEZIER_SEGMENT;
+   using stroke_style = ID2D1StrokeStyle;
+   using stroke_style_properties = D2D1_STROKE_STYLE_PROPERTIES;
+   using cap_style = D2D1_CAP_STYLE;
+   using line_join = D2D1_LINE_JOIN;
+   using gradient_stop = D2D1_GRADIENT_STOP;
+   using gradient_stop_collection = ID2D1GradientStopCollection;
+   using matrix2x2f = D2D1::Matrix3x2F;
 
-   constexpr auto d2d_ccw = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
-   constexpr auto d2d_cw = D2D1_SWEEP_DIRECTION_CLOCKWISE;
-   constexpr auto d2d_arc_small = D2D1_ARC_SIZE_SMALL;
-   constexpr auto d2d_arc_large = D2D1_ARC_SIZE_LARGE;
-   constexpr auto d2d_path_open = D2D1_FIGURE_END_OPEN;
-   constexpr auto d2d_path_closed = D2D1_FIGURE_END_CLOSED;
-   constexpr auto d2d_path_hollow = D2D1_FIGURE_BEGIN_HOLLOW;
-   constexpr auto d2d_path_filled = D2D1_FIGURE_BEGIN_FILLED;
+   constexpr auto sweep_dir_ccw = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
+   constexpr auto sweep_dir_cw = D2D1_SWEEP_DIRECTION_CLOCKWISE;
+   constexpr auto arc_small = D2D1_ARC_SIZE_SMALL;
+   constexpr auto arc_large = D2D1_ARC_SIZE_LARGE;
+   constexpr auto figure_path_open = D2D1_FIGURE_END_OPEN;
+   constexpr auto figure_end_closed = D2D1_FIGURE_END_CLOSED;
+   constexpr auto figure_begin_hollow = D2D1_FIGURE_BEGIN_HOLLOW;
+   constexpr auto figure_begin_filled = D2D1_FIGURE_BEGIN_FILLED;
 
-   constexpr auto d2d_line_join_miter = D2D1_LINE_JOIN_MITER;
-   constexpr auto d2d_line_join_bevel = D2D1_LINE_JOIN_BEVEL;
-   constexpr auto d2d_line_join_round = D2D1_LINE_JOIN_ROUND;
-   constexpr auto d2d_cap_style_flat = D2D1_CAP_STYLE_FLAT;
-   constexpr auto d2d_cap_style_square = D2D1_CAP_STYLE_SQUARE;
-   constexpr auto d2d_cap_style_round = D2D1_CAP_STYLE_ROUND;
+   constexpr auto line_join_miter = D2D1_LINE_JOIN_MITER;
+   constexpr auto line_join_bevel = D2D1_LINE_JOIN_BEVEL;
+   constexpr auto line_join_round = D2D1_LINE_JOIN_ROUND;
+   constexpr auto cap_style_flat = D2D1_CAP_STYLE_FLAT;
+   constexpr auto cap_style_square = D2D1_CAP_STYLE_SQUARE;
+   constexpr auto cap_style_round = D2D1_CAP_STYLE_ROUND;
 
    ////////////////////////////////////////////////////////////////////////////
    // Low-level utilities
@@ -117,12 +117,12 @@ namespace cycfi::artist
    template <typename Interface>
    inline void release(Interface*& ptr);
 
-   d2d_paint* make_paint(color c, d2d_canvas& cn);
-   d2d_paint* make_paint(canvas::linear_gradient const& , d2d_canvas& cnv);
-   d2d_paint* make_paint(canvas::radial_gradient const& rg, d2d_canvas& cnv);
+   brush* make_paint(color c, render_target& cn);
+   brush* make_paint(canvas::linear_gradient const& , render_target& cnv);
+   brush* make_paint(canvas::radial_gradient const& rg, render_target& cnv);
 
    template <typename Container>
-   d2d_geometry_group* make_group(Container const& c);
+   geometry_group* make_group(Container const& c);
 
    ////////////////////////////////////////////////////////////////////////////
    // Inlines
@@ -138,14 +138,14 @@ namespace cycfi::artist
    }
 
    template <typename Container>
-   inline d2d_geometry_group* make_group(
-      Container const& c, d2d_fill_mode mode
+   inline geometry_group* make_group(
+           Container const& c, fill_mode mode
    )
    {
-      d2d_geometry_group* group = nullptr;
+      geometry_group* group = nullptr;
       auto hr = get_factory().CreateGeometryGroup(
          mode
-       , const_cast<d2d_geometry**>(c.data())
+       , const_cast<geometry**>(c.data())
        , c.size()
        , &group
       );
@@ -154,47 +154,47 @@ namespace cycfi::artist
       return group;
    }
 
-   inline canvas_impl::canvas_impl(HWND hwnd, color bkd)
+   inline context::context(HWND hwnd, color bkd)
     : _hwnd{ hwnd }
     , _bkd{ bkd.red, bkd.green, bkd.blue, bkd.alpha }
    {
    }
 
-   inline canvas_impl::~canvas_impl()
+   inline context::~context()
    {
-      release(_d2d_canvas);
+      release(_target);
    }
 
-   inline HWND canvas_impl::hwnd() const
+   inline HWND context::hwnd() const
    {
       return _hwnd;
    }
 
-   inline d2d_canvas* canvas_impl::canvas() const
+   inline render_target* context::target() const
    {
-      return _d2d_canvas;
+      return _target;
    };
 
-   inline void canvas_impl::canvas(d2d_canvas* cnv)
+   inline void context::target(render_target* cnv)
    {
-      _d2d_canvas = cnv;
+      _target = cnv;
    }
 
    template <typename Renderer>
-   void canvas_impl::render(Renderer&& draw)
+   void context::render(Renderer&& draw)
    {
       update();
 
       // $$ for now $$$ need dynamic cast if (!(_d2d_canvas->CheckWindowState() & D2D1_WINDOW_STATE_OCCLUDED))
       {
-         _d2d_canvas->BeginDraw();
+         _target->BeginDraw();
 
          // if (_bkd.a > 0)
          //    _d2d_canvas->Clear(_bkd);
          // draw(*_d2d_canvas);
 
 
-         _d2d_canvas->Clear(D2D1::ColorF(0.8f, 0.9f, 1.0f));
+         _target->Clear(D2D1::ColorF(0.8f, 0.9f, 1.0f));
 
          // COMs
          ID2D1Bitmap *bitmap;
@@ -203,20 +203,20 @@ namespace cycfi::artist
          ID2D1Effect *gaussianBlur;
 
          // Create bitmapRenderTarget
-         _d2d_canvas->CreateCompatibleRenderTarget(&bitmapRenderTarget);
+         _target->CreateCompatibleRenderTarget(&bitmapRenderTarget);
 
          // Draw onto bitmapRenderTarget
          bitmapRenderTarget->BeginDraw();
 
-         auto save = _d2d_canvas;
-         _d2d_canvas = bitmapRenderTarget;
-         draw(*_d2d_canvas);
-         _d2d_canvas = save;
+         auto save = _target;
+         _target = bitmapRenderTarget;
+         draw(*_target);
+         _target = save;
 
          bitmapRenderTarget->EndDraw();
 
          // Obtain _d2d_canvas's deviceContext
-         _d2d_canvas->QueryInterface(&deviceContext);
+         _target->QueryInterface(&deviceContext);
 
          // Create and apply gaussian blur
          deviceContext->CreateEffect(CLSID_D2D1GaussianBlur, &gaussianBlur);
@@ -243,25 +243,25 @@ namespace cycfi::artist
 
 
 
-         auto hr = _d2d_canvas->EndDraw();
+         auto hr = _target->EndDraw();
          if (hr == D2DERR_RECREATE_TARGET)
             discard();
       }
    }
 
-   inline void canvas_impl::discard()
+   inline void context::discard()
    {
       if (_state)
          _state->discard();
-      release(_d2d_canvas);
+      release(_target);
    }
 
-   inline void canvas_impl::state(canvas_state_impl* state)
+   inline void context::state(context_state* state)
    {
       _state = state;
    }
 
-   inline canvas_state_impl* canvas_impl::state() const
+   inline context_state* context::state() const
    {
       return _state;
    }

@@ -5,33 +5,35 @@
 =============================================================================*/
 #include <infra/support.hpp>
 #include <artist/canvas.hpp>
-#include <canvas_impl.hpp>
+#include <context.hpp>
 #include <path_impl.hpp>
 #include <variant>
 #include <stack>
 
 namespace cycfi::artist
 {
-   class canvas::canvas_state : public canvas_state_impl
+   using namespace d2d;
+
+   class canvas::canvas_state : public context_state
    {
    public:
                         canvas_state();
                         ~canvas_state();
 
-      virtual void      update(d2d_canvas& cnv);
+      virtual void      update(render_target& cnv);
       virtual void      discard();
 
       artist::path&     path();
 
                         template <typename T>
-      void              fill_paint(T const& info, d2d_canvas& cnv);
+      void              fill_paint(T const& info, render_target& cnv);
 
                         template <typename T>
-      void              stroke_paint(T const& info, d2d_canvas& cnv);
+      void              stroke_paint(T const& info, render_target& cnv);
 
       void              line_width(float w);
-      void              fill(d2d_canvas& cnv, bool preserve);
-      void              stroke(d2d_canvas& cnv, bool preserve);
+      void              fill(render_target& cnv, bool preserve);
+      void              stroke(render_target& cnv, bool preserve);
 
       using line_cap_enum = canvas::line_cap_enum;
       using join_enum = canvas::join_enum;
@@ -40,9 +42,9 @@ namespace cycfi::artist
       void              line_join(join_enum join);
       void              miter_limit(float limit = 10);
 
-      void              translate(point p, d2d_canvas& cnv);
-      void              rotate(float rad, d2d_canvas& cnv);
-      void              scale(point p, d2d_canvas& cnv);
+      void              translate(point p, render_target& cnv);
+      void              rotate(float rad, render_target& cnv);
+      void              scale(point p, render_target& cnv);
 
    private:
 
@@ -56,20 +58,20 @@ namespace cycfi::artist
 
       artist::path      _path;
       paint_info        _fill_info;
-      d2d_paint*        _fill_paint = nullptr;
+      brush*        _fill_paint = nullptr;
       paint_info        _stroke_info;
-      d2d_paint*        _stroke_paint = nullptr;
+      brush*        _stroke_paint = nullptr;
       float             _line_width = 1;
-      d2d_matrix        _matrix;
+      matrix2x2f        _matrix;
 
-      d2d_stroke_style* _stroke_style = nullptr;
+      d2d::stroke_style* _stroke_style = nullptr;
       line_cap_enum     _line_cap = line_cap_enum::butt;
       join_enum         _join = join_enum::miter_join;
       float             _miter_limit = 10;
    };
 
    canvas::canvas_state::canvas_state()
-    : _matrix{ d2d_matrix::Identity() }
+    : _matrix{matrix2x2f::Identity() }
    {
    }
 
@@ -80,10 +82,10 @@ namespace cycfi::artist
       release(_stroke_style);
    }
 
-   void canvas::canvas_state::update(d2d_canvas& cnv)
+   void canvas::canvas_state::update(render_target& cnv)
    {
       auto make =
-         [&cnv](auto const& info) -> d2d_paint*
+         [&cnv](auto const& info) -> brush*
          {
             return make_paint(info, cnv);
          };
@@ -106,7 +108,7 @@ namespace cycfi::artist
    }
 
    template <typename T>
-   void canvas::canvas_state::fill_paint(T const& info, d2d_canvas& cnv)
+   void canvas::canvas_state::fill_paint(T const& info, render_target& cnv)
    {
       if (!std::holds_alternative<T>(_fill_info)
          || info != std::get<T>(_fill_info))
@@ -118,7 +120,7 @@ namespace cycfi::artist
    }
 
    template <typename T>
-   void canvas::canvas_state::stroke_paint(T const& info, d2d_canvas& cnv)
+   void canvas::canvas_state::stroke_paint(T const& info, render_target& cnv)
    {
       if (!std::holds_alternative<T>(_stroke_info)
          || info != std::get<T>(_stroke_info))
@@ -134,13 +136,13 @@ namespace cycfi::artist
       _line_width = w;
    }
 
-   void canvas::canvas_state::fill(d2d_canvas& cnv, bool preserve)
+   void canvas::canvas_state::fill(render_target& cnv, bool preserve)
    {
       cnv.SetTransform(_matrix);
       _path.impl()->fill(cnv, _fill_paint, preserve);
    }
 
-   void canvas::canvas_state::stroke(d2d_canvas& cnv, bool preserve)
+   void canvas::canvas_state::stroke(render_target& cnv, bool preserve)
    {
       cnv.SetTransform(_matrix);
       _path.impl()->stroke(
@@ -183,19 +185,19 @@ namespace cycfi::artist
       );
    }
 
-   void canvas::canvas_state::translate(point p, d2d_canvas& cnv)
+   void canvas::canvas_state::translate(point p, render_target& cnv)
    {
       _matrix = _matrix.Translation({ p.x, p.y }) * _matrix;
       // cnv.SetTransform(_matrix);
    }
 
-   void canvas::canvas_state::rotate(float rad, d2d_canvas& cnv)
+   void canvas::canvas_state::rotate(float rad, render_target& cnv)
    {
       _matrix = _matrix.Rotation(rad * 180 / pi, { 0, 0 }) * _matrix;
       // cnv.SetTransform(_matrix);
    }
 
-   void canvas::canvas_state::scale(point p, d2d_canvas& cnv)
+   void canvas::canvas_state::scale(point p, render_target& cnv)
    {
       _matrix = _matrix.Scale({ p.x, p.y }, { 0, 0 }) * _matrix;
       // cnv.SetTransform(_matrix);
@@ -218,17 +220,17 @@ namespace cycfi::artist
 
    void canvas::translate(point p)
    {
-      _state->translate(p, *_context->canvas());
+      _state->translate(p, *_context->target());
    }
 
    void canvas::rotate(float rad)
    {
-      _state->rotate(rad, *_context->canvas());
+      _state->rotate(rad, *_context->target());
    }
 
    void canvas::scale(point p)
    {
-      _state->scale(p, *_context->canvas());
+      _state->scale(p, *_context->target());
    }
 
    void canvas::save()
@@ -251,22 +253,22 @@ namespace cycfi::artist
 
    void canvas::fill()
    {
-      _state->fill(*_context->canvas(), false);
+      _state->fill(*_context->target(), false);
    }
 
    void canvas::fill_preserve()
    {
-      _state->fill(*_context->canvas(), true);
+      _state->fill(*_context->target(), true);
    }
 
    void canvas::stroke()
    {
-      _state->stroke(*_context->canvas(), false);
+      _state->stroke(*_context->target(), false);
    }
 
    void canvas::stroke_preserve()
    {
-      _state->stroke(*_context->canvas(), true);
+      _state->stroke(*_context->target(), true);
    }
 
    void canvas::clip()
@@ -328,12 +330,12 @@ namespace cycfi::artist
 
    void canvas::fill_style(color c)
    {
-      _state->fill_paint(c, *_context->canvas());
+      _state->fill_paint(c, *_context->target());
    }
 
    void canvas::stroke_style(color c)
    {
-      _state->stroke_paint(c, *_context->canvas());
+      _state->stroke_paint(c, *_context->target());
    }
 
    void canvas::line_width(float w)
@@ -366,22 +368,22 @@ namespace cycfi::artist
 
    void canvas::fill_style(linear_gradient const& gr)
    {
-      _state->fill_paint(gr, *_context->canvas());
+      _state->fill_paint(gr, *_context->target());
    }
 
    void canvas::fill_style(radial_gradient const& gr)
    {
-      _state->fill_paint(gr, *_context->canvas());
+      _state->fill_paint(gr, *_context->target());
    }
 
    void canvas::stroke_style(linear_gradient const& gr)
    {
-      _state->stroke_paint(gr, *_context->canvas());
+      _state->stroke_paint(gr, *_context->target());
    }
 
    void canvas::stroke_style(radial_gradient const& gr)
    {
-      _state->stroke_paint(gr, *_context->canvas());
+      _state->stroke_paint(gr, *_context->target());
    }
 
    void canvas::font(class font const& font_)

@@ -3,9 +3,9 @@
 
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
-#include <canvas_impl.hpp>
+#include <context.hpp>
 
-namespace cycfi::artist
+namespace cycfi::artist::d2d
 {
    namespace detail
    {
@@ -21,19 +21,19 @@ namespace cycfi::artist
             release(ptr);
          }
 
-         d2d_factory* ptr = nullptr;
+         factory* ptr = nullptr;
       };
    }
 
-   d2d_factory& get_factory()
+   factory& get_factory()
    {
       static detail::factory_maker maker;
       return *maker.ptr;
    }
 
-   void canvas_impl::update()
+   void context::update()
    {
-      if (!_d2d_canvas)
+      if (!_target)
       {
          RECT rc;
          GetClientRect(_hwnd, &rc);
@@ -50,19 +50,19 @@ namespace cycfi::artist
             D2D1::HwndRenderTargetProperties(_hwnd, size),
             &target
          );
-         _d2d_canvas = target;
+         _target = target;
 
          if (!SUCCEEDED(hr))
             throw std::runtime_error{ "Error: Failed to create RenderTarget." };
       }
 
       if (_state)
-         _state->update(*_d2d_canvas);
+         _state->update(*_target);
    }
 
-   d2d_paint* make_paint(color c, d2d_canvas& cnv)
+   brush* make_paint(color c, render_target& cnv)
    {
-      d2d_solid_color* ptr = nullptr;
+      solid_color_brush* ptr = nullptr;
       auto hr = cnv.CreateSolidColorBrush(
          D2D1::ColorF(c.red, c.green, c.blue, c.alpha)
        , &ptr
@@ -74,10 +74,10 @@ namespace cycfi::artist
 
    namespace
    {
-      d2d_gradient_stop_collection*
-      make_stops(canvas::gradient const& g, d2d_canvas& cnv)
+      gradient_stop_collection*
+      make_stops(canvas::gradient const& g, render_target& cnv)
       {
-         std::vector<d2d_gradient_stop> stops;
+         std::vector<gradient_stop> stops;
          for (auto const& space : g.color_space)
             stops.push_back(
                {
@@ -91,7 +91,7 @@ namespace cycfi::artist
                }
             );
 
-         d2d_gradient_stop_collection* collection = nullptr;
+         gradient_stop_collection* collection = nullptr;
          auto hr = cnv.CreateGradientStopCollection(
             stops.data(),
             stops.size(),
@@ -106,11 +106,11 @@ namespace cycfi::artist
       }
    }
 
-   d2d_paint* make_paint(canvas::linear_gradient const& lg, d2d_canvas& cnv)
+   brush* make_paint(canvas::linear_gradient const& lg, render_target& cnv)
    {
       auto stops = make_stops(lg, cnv);
 
-      d2d_linear_gradient* result = nullptr;
+      linear_gradient_brush* result = nullptr;
       auto hr = cnv.CreateLinearGradientBrush(
          D2D1::LinearGradientBrushProperties(
             D2D1::Point2F(lg.start.x, lg.start.y),
@@ -124,11 +124,11 @@ namespace cycfi::artist
       return result;
    }
 
-   d2d_paint* make_paint(canvas::radial_gradient const& rg, d2d_canvas& cnv)
+   brush* make_paint(canvas::radial_gradient const& rg, render_target& cnv)
    {
       auto stops = make_stops(rg, cnv);
 
-      d2d_radial_gradient* result = nullptr;
+      radial_gradient_brush* result = nullptr;
       auto hr = cnv.CreateRadialGradientBrush(
         D2D1::RadialGradientBrushProperties(
             D2D1::Point2F(rg.c1.x, rg.c1.y),

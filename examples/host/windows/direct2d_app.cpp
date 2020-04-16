@@ -13,7 +13,7 @@
 #pragma comment(lib, "dxguid.lib")
 
 #include "../../app.hpp"
-#include <canvas_impl.hpp>
+#include <context.hpp>
 #include <ShellScalingAPI.h>
 
 #ifndef HINST_THISCOMPONENT
@@ -45,7 +45,7 @@ private:
 
 private:
 
-   using canvas_impl_ptr = std::unique_ptr<ca::canvas_impl>;
+   using canvas_impl_ptr = std::unique_ptr<ca::context>;
    using canvas_ptr = std::unique_ptr<ca::canvas>;
 
    canvas_impl_ptr         _canvas_impl;
@@ -75,7 +75,7 @@ app::app(extent size, color bkd, bool animate)
    // Because the CreateWindow function takes its size in pixels, we
    // obtain the system DPI and use it to scale the window size.
    FLOAT dpiX, dpiY;
-   ca::get_factory().GetDesktopDpi(&dpiX, &dpiY);
+   ca::d2d::get_factory().GetDesktopDpi(&dpiX, &dpiY);
    auto style = /*WS_OVERLAPPEDWINDOW; */ WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 
    size.x *= dpiX / 96.f;
@@ -99,7 +99,7 @@ app::app(extent size, color bkd, bool animate)
 
    if (SUCCEEDED(hr))
    {
-      _canvas_impl = std::make_unique<ca::canvas_impl>(hwnd, bkd);
+      _canvas_impl = std::make_unique<ca::context>(hwnd, bkd);
       _canvas = std::make_unique<ca::canvas>(_canvas_impl.get());
 
       ShowWindow(_canvas_impl->hwnd(), SW_SHOWNORMAL);
@@ -152,7 +152,7 @@ void app::render()
 
 void app::resize(UINT width, UINT height)
 {
-   if (_canvas_impl->canvas())
+   if (_canvas_impl->target())
    {
       D2D1_SIZE_U size;
       size.width = width;

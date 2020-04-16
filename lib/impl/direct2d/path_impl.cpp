@@ -5,9 +5,9 @@
 =============================================================================*/
 #include <path_impl.hpp>
 
-namespace cycfi::artist
+namespace cycfi::artist::d2d
 {
-   d2d_geometry* path_impl::compute_fill()
+   geometry* path_impl::compute_fill()
    {
       auto mode = fill_type(_mode);
 
@@ -35,8 +35,8 @@ namespace cycfi::artist
    }
 
    void path_impl::fill(
-      d2d_canvas& cnv
-    , d2d_paint* paint
+           render_target& cnv
+    , brush* paint
     , bool preserve)
    {
       build_path();
@@ -49,11 +49,11 @@ namespace cycfi::artist
    }
 
    void path_impl::stroke(
-      d2d_canvas& cnv
-    , d2d_paint* paint
+           render_target& cnv
+    , brush* paint
     , float line_width
     , bool preserve
-    , d2d_stroke_style* stroke_style
+    , stroke_style* stroke_style
    )
    {
       build_path();
@@ -77,11 +77,11 @@ namespace cycfi::artist
          end_path();
       _path_gens_state = path_started;
       _path_gens.push_back(
-         [](d2d_path_sink* sink, fill_type mode)
+         [](geometry_sink* sink, fill_type mode)
          {
-            d2d_figure_begin flag =
-               mode == path_impl::stroke_mode?
-               d2d_path_hollow : d2d_path_filled
+            figure_begin flag =
+               mode == path_impl::stroke_mode ?
+               figure_begin_hollow : figure_begin_filled
                ;
             sink->BeginFigure({ 0, 0 }, flag);
          }
@@ -93,10 +93,10 @@ namespace cycfi::artist
    {
       _path_gens_state = path_ended;
       _path_gens.push_back(
-         [close](d2d_path_sink* sink, fill_type mode)
+         [close](geometry_sink* sink, fill_type mode)
          {
             sink->EndFigure(
-               close? d2d_path_closed : d2d_path_open
+                    close ? figure_end_closed : figure_path_open
             );
          }
       );
@@ -109,11 +109,11 @@ namespace cycfi::artist
       close_sub_path_if_open();
       _path_gens_state = path_started;
       _path_gens.push_back(
-         [p](d2d_path_sink* sink, fill_type mode)
+         [p](geometry_sink* sink, fill_type mode)
          {
-            d2d_figure_begin flag =
-               mode == path_impl::stroke_mode?
-               d2d_path_hollow : d2d_path_filled
+            figure_begin flag =
+               mode == path_impl::stroke_mode ?
+               figure_begin_hollow : figure_begin_filled
                ;
             sink->BeginFigure({ p.x, p.y }, flag);
          }
@@ -130,7 +130,7 @@ namespace cycfi::artist
       }
 
       _path_gens.push_back(
-         [p](d2d_path_sink* sink, fill_type mode)
+         [p](geometry_sink* sink, fill_type mode)
          {
             sink->AddLine({ p.x, p.y });
          }
@@ -158,15 +158,15 @@ namespace cycfi::artist
       if (diff_angle < 0)
          diff_angle += 2 * pi;
 
-      d2d_arc_segment arc;
+      arc_segment arc;
       arc.point = { endx, endy };
       arc.size = { radius, radius };
       arc.rotationAngle = diff_angle * 180 / pi;
-      arc.sweepDirection = ccw? d2d_ccw : d2d_cw;
-      arc.arcSize = diff_angle > pi? d2d_arc_large : d2d_arc_small;
+      arc.sweepDirection = ccw ? sweep_dir_ccw : sweep_dir_cw;
+      arc.arcSize = diff_angle > pi ? arc_large : arc_small;
 
       _path_gens.push_back(
-         [arc](d2d_path_sink* sink, fill_type mode)
+         [arc](geometry_sink* sink, fill_type mode)
          {
             sink->AddArc(arc);
          }
@@ -225,12 +225,12 @@ namespace cycfi::artist
       if (_path_gens_state == path_ended)
          move_to({ cp.x, cp.y });
 
-      d2d_quad_segment quad;
+      quadratic_bezier_segment quad;
       quad.point1 = { cp.x, cp.y };
       quad.point2 = { end.x, end.y };
 
       _path_gens.push_back(
-         [quad](d2d_path_sink* sink, fill_type mode)
+         [quad](geometry_sink* sink, fill_type mode)
          {
             sink->AddQuadraticBezier(quad);
          }
@@ -242,13 +242,13 @@ namespace cycfi::artist
       if (_path_gens_state == path_ended)
          move_to({ cp1.x, cp1.y });
 
-      d2d_bezier_segment bezier;
+      bezier_segment bezier;
       bezier.point1 = { cp1.x, cp1.y };
       bezier.point2 = { cp2.x, cp2.y };
       bezier.point3 = { end.x, end.y };
 
       _path_gens.push_back(
-         [bezier](d2d_path_sink* sink, fill_type mode)
+         [bezier](geometry_sink* sink, fill_type mode)
          {
             sink->AddBezier(bezier);
          }
@@ -268,7 +268,7 @@ namespace cycfi::artist
                auto sink = start(path);
 
                if (mode != path_impl::stroke_mode)
-                  sink->SetFillMode(d2d_fill_mode(mode));
+                  sink->SetFillMode(fill_mode(mode));
 
                for (auto const& gen : gen_vec)
                   gen(sink, mode);

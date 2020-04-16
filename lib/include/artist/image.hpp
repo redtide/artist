@@ -18,11 +18,14 @@ using canvas_impl = SkCanvas;
 
 namespace cycfi::artist
 {
-#if defined(ARTIST_QUARTZ_2D) || defined(ARTIST_DIRECT_2D)
+#if defined(ARTIST_QUARTZ_2D)
    struct canvas_impl;
+#elif defined(ARTIST_DIRECT_2D)
+   namespace d2d { struct context; };
+   using d2d::context;
 #endif
 
-   using canvas_impl_ptr = canvas_impl*;
+   using canvas_impl_ptr = context*;
 
    class image_impl;
    using image_impl_ptr = image_impl*;

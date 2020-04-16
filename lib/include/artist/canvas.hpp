@@ -28,7 +28,7 @@ namespace cycfi::artist
    struct canvas_impl;
 #endif
 
-   using canvas_impl_ptr = canvas_impl*;
+   using canvas_impl_ptr = context*;
 
    class canvas
    {
