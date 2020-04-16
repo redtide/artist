@@ -73,7 +73,7 @@ void tauri(canvas& cnv)
 void draw(canvas& cnv)
 {
    cnv.circle({ 250, 250, 80 });
-   cnv.fill_style(colors::black.opacity(0.3));
+   cnv.fill_style(colors::black);
    cnv.fill();
 }
 

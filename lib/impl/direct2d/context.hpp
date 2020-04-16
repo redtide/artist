@@ -21,6 +21,9 @@ namespace cycfi::artist::d2d
    using render_target        = ID2D1RenderTarget;
    using hwnd_render_target   = ID2D1HwndRenderTarget;
    using factory              = ID2D1Factory;
+   using bitmap               = ID2D1Bitmap;
+   using bitmap_render_target = ID2D1BitmapRenderTarget;
+   using device_context       = ID2D1DeviceContext;
 
    ////////////////////////////////////////////////////////////////////////////
    // The main factory (singleton)
@@ -42,31 +45,48 @@ namespace cycfi::artist::d2d
    struct context
    {
    public:
-                           context(HWND hwnd, color bkd);
-                           ~context();
+                              context(HWND hwnd, color bkd);
+                              ~context();
 
-                           template <typename Renderer>
-      void                 render(Renderer&& draw);
+                              template <typename Renderer>
+      void                    render(Renderer&& draw);
 
-      HWND                 hwnd() const;
-      render_target*       target() const;
-      void                 target(render_target* cnv);
+      HWND                    hwnd() const;
+      render_target*          target() const;
+      void                    target(render_target* cnv);
 
-      void                 state(context_state* state);
-      context_state*       state() const;
+      void                    state(context_state* state);
+      context_state*          state() const;
 
    private:
 
-                           context(context const&) = delete;
-      context&             operator=(context const&) = delete;
+                              context(context const&) = delete;
+      context&                operator=(context const&) = delete;
 
-      void                 update();
-      void                 discard();
+      void                    update();
+      void                    discard();
 
-      HWND                 _hwnd = nullptr;
-      render_target*       _target = nullptr;
-      D2D1::ColorF         _bkd;
-      context_state*       _state = nullptr;
+      HWND                    _hwnd = nullptr;
+      render_target*          _target = nullptr;
+      D2D1::ColorF            _bkd;
+      context_state*          _state = nullptr;
+   };
+
+   struct offscreen_context
+   {
+                              offscreen_context(extent size, context& ctx);
+                              ~offscreen_context();
+
+      render_target*          target() const;
+      device_context*         dc();
+
+   private:
+
+      bitmap*                 _bm = nullptr;
+      bitmap_render_target*   _bm_target = nullptr;
+      device_context*         _dc = nullptr;
+      render_target*          _target = nullptr;
+      context&                _ctx;
    };
 
    ////////////////////////////////////////////////////////////////////////////
@@ -96,6 +116,7 @@ namespace cycfi::artist::d2d
    using gradient_stop_collection      = ID2D1GradientStopCollection;
    using matrix2x2f                    = D2D1::Matrix3x2F;
    using rectf                         = D2D1_RECT_F;
+   using effect                        = ID2D1Effect;
 
    constexpr auto sweep_dir_ccw        = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
    constexpr auto sweep_dir_cw         = D2D1_SWEEP_DIRECTION_CLOCKWISE;
@@ -320,6 +341,35 @@ namespace cycfi::artist::d2d
    inline context_state* context::state() const
    {
       return _state;
+   }
+
+   inline offscreen_context::offscreen_context(extent size, context& ctx)
+    : _target(ctx.target())
+    , _ctx(ctx)
+   {
+      _target->CreateCompatibleRenderTarget(
+         { size.x, size.y }, &_bm_target
+      );
+      ctx.target(_bm_target);
+   }
+
+   inline offscreen_context::~offscreen_context()
+   {
+      _bm->Release();
+      _bm_target->Release();
+      _dc->Release();
+      _ctx.target(_target);
+   }
+
+   inline render_target* offscreen_context::target() const
+   {
+      return _bm_target;
+   }
+
+   inline device_context* offscreen_context::dc()
+   {
+      _target->QueryInterface(&_dc);
+      return _dc;
    }
 }
 

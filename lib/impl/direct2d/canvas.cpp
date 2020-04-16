@@ -46,6 +46,8 @@ namespace cycfi::artist
       void              rotate(float rad);
       void              scale(point p);
 
+      void              shadow_style(point offset, float blur, color c);
+
    private:
 
       void              update_stroke_style();
@@ -68,6 +70,10 @@ namespace cycfi::artist
       line_cap_enum     _line_cap = line_cap_enum::butt;
       join_enum         _join = join_enum::miter_join;
       float             _miter_limit = 10;
+
+      point             _shadow_offset = { 0, 0 };
+      float             _shadow_blur = 0;
+      color             _shadow_color = colors::black;
    };
 
    canvas::canvas_state::canvas_state()
@@ -138,18 +144,28 @@ namespace cycfi::artist
 
    void canvas::canvas_state::fill(context& ctx, bool preserve)
    {
-      auto target = ctx.target();
-      target->SetTransform(_matrix);
-      _path.impl()->fill(*target, _fill_paint, preserve);
+      auto render =
+         [this, preserve](render_target* target, brush* brush)
+         {
+            target->SetTransform(_matrix);
+            _path.impl()->fill(*target, brush, preserve);
+         };
+
+      render(ctx.target(), _fill_paint);
    }
 
    void canvas::canvas_state::stroke(context& ctx, bool preserve)
    {
-      auto target = ctx.target();
-      target->SetTransform(_matrix);
-      _path.impl()->stroke(
-         *target, _stroke_paint, _line_width, preserve, _stroke_style
-      );
+      auto render =
+         [this, preserve](render_target* target, brush* brush)
+         {
+            target->SetTransform(_matrix);
+            _path.impl()->stroke(
+               *target, brush, _line_width, preserve, _stroke_style
+            );
+         };
+
+      render(ctx.target(), _stroke_paint);
    }
 
    void canvas::canvas_state::line_cap(line_cap_enum cap)
@@ -200,6 +216,13 @@ namespace cycfi::artist
    void canvas::canvas_state::scale(point p)
    {
       _matrix = _matrix.Scale({ p.x, p.y }, { 0, 0 }) * _matrix;
+   }
+
+   void canvas::canvas_state::shadow_style(point offset, float blur, color c)
+   {
+      _shadow_offset = offset;
+      _shadow_blur = blur;
+      _shadow_color = c;
    }
 
    canvas::canvas(canvas_impl_ptr context_)
