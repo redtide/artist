@@ -95,6 +95,7 @@ namespace cycfi::artist::d2d
    using gradient_stop                 = D2D1_GRADIENT_STOP;
    using gradient_stop_collection      = ID2D1GradientStopCollection;
    using matrix2x2f                    = D2D1::Matrix3x2F;
+   using rectf                         = D2D1_RECT_F;
 
    constexpr auto sweep_dir_ccw        = D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE;
    constexpr auto sweep_dir_cw         = D2D1_SWEEP_DIRECTION_CLOCKWISE;

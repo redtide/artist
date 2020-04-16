@@ -4,7 +4,7 @@
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
 #if !defined(ARTIST_RECT_APRIL_10_2016)
-#define ELEMENTS_RECT_APRIL_10_2016
+#define ARTIST_RECT_APRIL_10_2016
 
 #include <artist/point.hpp>
 

@@ -4,7 +4,7 @@
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
 #if !defined(ARTIST_TEST_PATHS_MARCH_12_2020)
-#define ELEMENTS_TEST_PATHS_MARCH_12_2020
+#define ARTIST_TEST_PATHS_MARCH_12_2020
 
 #include <artist/canvas.hpp>
 #include <string>

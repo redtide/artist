@@ -4,7 +4,7 @@
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
 #if !defined(ARTIST_PATH_APRIL_8_2020)
-#define ELEMENTS_PATH_APRIL_8_2020
+#define ARTIST_PATH_APRIL_8_2020
 
 #include <infra/support.hpp>
 #include <artist/rect.hpp>

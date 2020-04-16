@@ -4,7 +4,7 @@
    Distributed under the MIT License [ https://opensource.org/licenses/MIT ]
 =============================================================================*/
 #if !defined(ARTIST_TEXT_LAYOUT_MARCH_17_2020)
-#define ELEMENTS_TEXT_LAYOUT_MARCH_17_2020
+#define ARTIST_TEXT_LAYOUT_MARCH_17_2020
 
 #include <string_view>
 #include <artist/font.hpp>
