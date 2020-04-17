@@ -146,8 +146,9 @@ elseif (WIN32 AND ARTIST_DIRECT_2D)
       impl/direct2d/path.cpp
       impl/direct2d/path_impl.cpp
    )
+endif()
 
-elseif (ARTIST_SKIA)
+if (ARTIST_SKIA)
 
    set(ARTIST_IMPL
       impl/skia/canvas.cpp
