@@ -200,7 +200,7 @@ namespace cycfi::artist
       blur->SetInput(0, offscreen.bitmap());
       blur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
       blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, blur_val);
-      blur->SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_QUALITY);
+      blur->SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_BALANCED);
 
       auto offset_x = _shadow_offset.x / _matrix.m11;
       auto offset_y = _shadow_offset.y / _matrix.m22;
