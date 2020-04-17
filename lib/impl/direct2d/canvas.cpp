@@ -52,6 +52,11 @@ namespace cycfi::artist
 
       void              update_stroke_style();
 
+      using render_function = std::function<void(render_target*, brush*, bool)>;
+
+      void              apply_blur(context& ctx, artist::rect bounds, render_function render);
+      void              adjust_for_blur(artist::rect& bounds);
+
       using paint_info = std::variant<
          color
        , canvas::linear_gradient
@@ -142,6 +147,79 @@ namespace cycfi::artist
       _line_width = w;
    }
 
+   void canvas::canvas_state::adjust_for_blur(artist::rect& bounds)
+   {
+      // adjust for blur size
+      float offset = _shadow_blur / _matrix.m11;
+      bounds.left -= offset;
+      bounds.right += offset;
+      bounds.top -= offset;
+      bounds.bottom += offset;
+
+      // bounds.left += _shadow_offset.x;
+      // bounds.right += _shadow_offset.x;
+      // bounds.top += _shadow_offset.y;
+      // bounds.bottom += _shadow_offset.y;
+   }
+
+   void canvas::canvas_state::apply_blur(context& ctx, artist::rect bounds, render_function render)
+   {
+      offscreen_context offscreen{ ctx };
+      auto bm_target = offscreen.target();
+
+      float alpha = 1.0;
+      if (std::holds_alternative<color>(_fill_info))
+         alpha = std::get<color>(_fill_info).alpha;
+
+      bm_target->BeginDraw();
+
+      solid_color_brush* shadow_paint = nullptr;
+      bm_target->CreateSolidColorBrush(
+         D2D1::ColorF(
+            _shadow_color.red
+            , _shadow_color.green
+            , _shadow_color.blue
+            , alpha                // Use the fill color's alpha
+         ), &shadow_paint
+      );
+
+      render(bm_target, shadow_paint, true);
+
+      // bm_target->DrawRectangle(
+      //    { bounds.left, bounds.top, bounds.right, bounds.bottom},
+      //    shadow_paint, 1, nullptr);
+
+
+      bm_target->EndDraw();
+
+      ID2D1Effect* blur;
+      auto dc = offscreen.dc();
+      dc->CreateEffect(CLSID_D2D1GaussianBlur, &blur);
+
+      auto blur_val = (_shadow_blur / _matrix.m11) / 3;
+      blur->SetInput(0, offscreen.bitmap());
+      blur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
+      blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, blur_val);
+      blur->SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_QUALITY);
+
+      auto offset_x = _shadow_offset.x / _matrix.m11;
+      auto offset_y = _shadow_offset.y / _matrix.m22;
+
+      ID2D1Effect* xform;
+      dc->CreateEffect(CLSID_D2D12DAffineTransform, &xform);
+      xform->SetInputEffect(0, blur);
+      matrix2x2f matrix = D2D1::Matrix3x2F::Translation(offset_x, offset_y);
+      xform->SetValue(D2D1_2DAFFINETRANSFORM_PROP_TRANSFORM_MATRIX, matrix);
+
+      dc->DrawImage(
+         xform,
+         D2D1_POINT_2F{ bounds.left, bounds.top }, // targetOffset
+         D2D1_RECT_F{ bounds.left, bounds.top, bounds.right, bounds.bottom }, // imageRectangle
+         D2D1_INTERPOLATION_MODE_LINEAR);
+
+      release(shadow_paint);
+   }
+
    void canvas::canvas_state::fill(context& ctx, bool preserve)
    {
       auto render =
@@ -151,90 +229,45 @@ namespace cycfi::artist
          };
 
       ctx.target()->SetTransform(_matrix);
+      auto bounds =  _path.impl()->fill_bounds(*ctx.target());
+      adjust_for_blur(bounds);
+
       if (_shadow_blur != 0)
-      {
-         auto bounds = _path.impl()->fill_bounds(*ctx.target());
-
-         // adjust for blur size
-         float extra_x =  _shadow_blur * 2 * _matrix.m11;
-         float extra_y =  _shadow_blur * 2 * _matrix.m22;
-         bounds.left -= extra_x;
-         bounds.right += extra_x;
-         bounds.top -= extra_x;
-         bounds.bottom += extra_x;
-         auto size = bounds.size();
-
-         offscreen_context offscreen{ ctx };
-         auto bm_target = offscreen.target();
-
-         float alpha = 1.0;
-         if (std::holds_alternative<color>(_fill_info))
-            alpha = std::get<color>(_fill_info).alpha;
-
-         bm_target->BeginDraw();
-
-         solid_color_brush* shadow_paint = nullptr;
-         bm_target->CreateSolidColorBrush(
-            D2D1::ColorF(
-               _shadow_color.red
-             , _shadow_color.green
-             , _shadow_color.blue
-             , alpha                // Use the fill color's alpha
-            ), &shadow_paint
-         );
-
-         render(bm_target, shadow_paint, true);
-         bm_target->EndDraw();
-
-         ID2D1Effect* blur;
-         auto dc = offscreen.dc();
-         dc->CreateEffect(CLSID_D2D1GaussianBlur, &blur);
-
-         auto blur_val = (_shadow_blur / _matrix.m11) / 3;
-         blur->SetInput(0, offscreen.bitmap());
-         blur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
-         blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, blur_val);
-
-         auto offset_x = _shadow_offset.x / _matrix.m11;
-         auto offset_y = _shadow_offset.y / _matrix.m22;
-
-         ID2D1Effect* xform;
-         dc->CreateEffect(CLSID_D2D12DAffineTransform, &xform);
-         xform->SetInputEffect(0, blur);
-         D2D1_MATRIX_3X2_F matrix = D2D1::Matrix3x2F::Translation(offset_x, offset_y);
-         xform->SetValue(D2D1_2DAFFINETRANSFORM_PROP_TRANSFORM_MATRIX, matrix);
-
-         // ID2D1Effect* composite;
-         // dc->CreateEffect(CLSID_D2D1Composite, &composite);
-
-         // composite->SetInputEffect(0, blur);
-         // composite->SetInputEffect(1, xform);
-         //composite->SetInput(2, offscreen.bitmap());
-
-         dc->DrawImage(
-            xform,
-            D2D1_POINT_2F{ bounds.left, bounds.top }, // targetOffset
-            D2D1_RECT_F{ bounds.left, bounds.top, bounds.right, bounds.bottom }, // imageRectangle
-            D2D1_INTERPOLATION_MODE_LINEAR);
-
-         release(shadow_paint);
-      }
+         apply_blur(ctx, bounds, render);
 
       render(ctx.target(), _fill_paint, preserve);
+
+      // ctx.target()->SetTransform(matrix2x2f::Identity());
+      // ctx.target()->DrawRectangle(
+      //    { bounds.left, bounds.top, bounds.right, bounds.bottom},
+      //    _stroke_paint, 1, nullptr);
    }
 
    void canvas::canvas_state::stroke(context& ctx, bool preserve)
    {
       auto render =
-         [this, preserve](render_target* target, brush* brush)
+         [this, preserve](render_target* target, brush* brush, bool preserve)
          {
-            target->SetTransform(_matrix);
             _path.impl()->stroke(
                *target, brush, _line_width, preserve, _stroke_style
             );
          };
 
-      render(ctx.target(), _stroke_paint);
+      ctx.target()->SetTransform(_matrix);
+      auto bounds =
+         _path.impl()->stroke_bounds(
+            *ctx.target(), _line_width, _stroke_style
+         );
+      adjust_for_blur(bounds);
+
+      if (_shadow_blur != 0)
+         apply_blur(ctx, bounds, render);
+      render(ctx.target(), _stroke_paint, preserve);
+
+      // ctx.target()->SetTransform(matrix2x2f::Identity());
+      // ctx.target()->DrawRectangle(
+      //    { bounds.left, bounds.top, bounds.right, bounds.bottom},
+      //    _stroke_paint, 1, nullptr);
    }
 
    void canvas::canvas_state::line_cap(line_cap_enum cap)

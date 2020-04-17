@@ -86,7 +86,7 @@ app::app(extent size, color bkd, bool animate)
 
    auto hwnd = CreateWindow(
       L"D2DDemoApp",
-      L"Direct2D Demo Application",
+      L"Direct2D",
       style,
       CW_USEDEFAULT, CW_USEDEFAULT,       // default position
       rect.right-rect.left,               // width

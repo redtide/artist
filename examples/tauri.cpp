@@ -7,7 +7,7 @@
 
 using namespace cycfi::artist;
 auto constexpr window_size = point{ 640.0f, 480.0f };
-auto constexpr bkd_color = colors::white; // rgb(44, 42, 45);
+auto constexpr bkd_color = /*colors::white; */ rgb(44, 42, 45);
 
 void background(canvas& cnv)
 {
@@ -32,19 +32,19 @@ void logo(canvas& cnv)
    cnv.bezier_curve_to(3.6258176, 43, 24.091255, 16.26616, 24.091255, 16.26616);
    cnv.fill();
 
-   // cnv.begin_path();
-   // cnv.line_width(2.5);
-   // cnv.circle(24, 8, 4);
-   // cnv.stroke();
+   cnv.begin_path();
+   cnv.line_width(2.5);
+   cnv.circle(24, 8, 4);
+   cnv.stroke();
 }
 
 void tauri(canvas& cnv)
 {
-   // // Glow
-   // cnv.fill_style(bkd_color);
-   // cnv.stroke_style(bkd_color);
-   // cnv.shadow_style({ -1, -1 }, 10, colors::light_cyan);
-   // logo(cnv);
+   // Glow
+   cnv.fill_style(bkd_color);
+   cnv.stroke_style(bkd_color);
+   cnv.shadow_style({ -1, -1 }, 10, colors::light_cyan);
+   logo(cnv);
 
    // Shadow
    cnv.fill_style(colors::black);// bkd_color);
@@ -52,21 +52,21 @@ void tauri(canvas& cnv)
    cnv.shadow_style({ 5.0, 5.0 }, 20, rgb(0, 0, 20));
    logo(cnv);
 
-   // // Gradient
-   // auto gr = canvas::linear_gradient{ 0, 0, 50, 50 };
-   // gr.add_color_stop(0.0, colors::gold);
-   // gr.add_color_stop(1.0, colors::gold.opacity(0));
+   // Gradient
+   auto gr = canvas::linear_gradient{ 0, 0, 50, 50 };
+   gr.add_color_stop(0.0, colors::gold);
+   gr.add_color_stop(1.0, colors::gold.opacity(0));
 
-   // cnv.fill_style(gr);
-   // cnv.stroke_style(gr);
-   // logo(cnv);
+   cnv.fill_style(gr);
+   cnv.stroke_style(gr);
+   logo(cnv);
 }
 
 void draw(canvas& cnv)
 {
    //background(cnv);
-   cnv.scale(9, 9);
-   // cnv.translate(9, 0);
+   cnv.scale(10, 10);
+   cnv.translate(9, 0);
    tauri(cnv);
 }
 

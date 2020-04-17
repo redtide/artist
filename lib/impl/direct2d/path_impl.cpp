@@ -88,10 +88,10 @@ namespace cycfi::artist::d2d
       build_path();
       if (!empty())
       {
-         matrix2x2f matrix;
-         target.GetTransform(&matrix);
+         //matrix2x2f matrix = matrix2x2f::Identity();
+         //target.GetTransform(&matrix);
          auto geom = compute_fill();
-         geom->GetBounds(matrix, &d2d_bounds);
+         geom->GetBounds(nullptr, &d2d_bounds);
       }
       return {
          d2d_bounds.left,
@@ -111,11 +111,11 @@ namespace cycfi::artist::d2d
       build_path();
       if (!empty())
       {
-         matrix2x2f matrix;
-         target.GetTransform(&matrix);
+         //matrix2x2f matrix = matrix2x2f::Identity();
+         //target.GetTransform(&matrix);
          auto geom = compute_fill();
          geom->GetWidenedBounds(
-            line_width, stroke_style, matrix, &d2d_bounds
+            line_width, stroke_style, nullptr, &d2d_bounds
          );
       }
       return {
