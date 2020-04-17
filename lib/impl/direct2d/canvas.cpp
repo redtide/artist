@@ -171,8 +171,6 @@ namespace cycfi::artist
          if (std::holds_alternative<color>(_fill_info))
             alpha = std::get<color>(_fill_info).alpha;
 
-         //bm_target->SetTransform(matrix2x2f::Identity());
-
          bm_target->BeginDraw();
 
          solid_color_brush* shadow_paint = nullptr;
@@ -193,19 +191,28 @@ namespace cycfi::artist
          dc->CreateEffect(CLSID_D2D1GaussianBlur, &blur);
 
          auto blur_val = (_shadow_blur / _matrix.m11) / 3;
-
          blur->SetInput(0, offscreen.bitmap());
          blur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
          blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, blur_val);
 
-         // blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 0.0);
-//         blur->SetValue(D2D1_SHADOW_PROP_OPTIMIZATION, D2D1_DIRECTIONALBLUR_OPTIMIZATION_SPEED);
+         auto offset_x = _shadow_offset.x / _matrix.m11;
+         auto offset_y = _shadow_offset.y / _matrix.m22;
 
-         // float offset_x =  _shadow_offset.x * _matrix.m11;
-         // float offset_y =  _shadow_offset.y * _matrix.m22;
+         ID2D1Effect* xform;
+         dc->CreateEffect(CLSID_D2D12DAffineTransform, &xform);
+         xform->SetInputEffect(0, blur);
+         D2D1_MATRIX_3X2_F matrix = D2D1::Matrix3x2F::Translation(offset_x, offset_y);
+         xform->SetValue(D2D1_2DAFFINETRANSFORM_PROP_TRANSFORM_MATRIX, matrix);
+
+         // ID2D1Effect* composite;
+         // dc->CreateEffect(CLSID_D2D1Composite, &composite);
+
+         // composite->SetInputEffect(0, blur);
+         // composite->SetInputEffect(1, xform);
+         //composite->SetInput(2, offscreen.bitmap());
 
          dc->DrawImage(
-            blur,
+            xform,
             D2D1_POINT_2F{ bounds.left, bounds.top }, // targetOffset
             D2D1_RECT_F{ bounds.left, bounds.top, bounds.right, bounds.bottom }, // imageRectangle
             D2D1_INTERPOLATION_MODE_LINEAR);
