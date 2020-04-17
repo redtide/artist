@@ -46,6 +46,7 @@ namespace cycfi::artist
       constexpr point   bottom_right() const;
       constexpr point   top_right() const;
       constexpr point   bottom_left() const;
+      constexpr extent  size() const;
 
       constexpr rect    move(float dx, float dy) const;
       constexpr rect    move_to(float x, float y) const;
@@ -163,6 +164,11 @@ namespace cycfi::artist
    constexpr point rect::bottom_left() const
    {
       return { left, bottom };
+   }
+
+   constexpr extent rect::size() const
+   {
+      return { width(), height() };
    }
 
    constexpr rect rect::move(float dx, float dy) const

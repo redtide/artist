@@ -22,10 +22,10 @@ namespace cycfi::artist
    struct canvas_impl;
 #elif defined(ARTIST_DIRECT_2D)
    namespace d2d { struct context; };
-   using d2d::context;
+   using canvas_impl = d2d::context;
 #endif
 
-   using canvas_impl_ptr = context*;
+   using canvas_impl_ptr = canvas_impl*;
 
    class image_impl;
    using image_impl_ptr = image_impl*;

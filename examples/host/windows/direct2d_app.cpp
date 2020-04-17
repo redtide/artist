@@ -45,7 +45,7 @@ private:
 
 private:
 
-   using context_ptr = std::unique_ptr<ca::context>;
+   using context_ptr = std::unique_ptr<ca::d2d::context>;
    using canvas_ptr = std::unique_ptr<ca::canvas>;
 
    context_ptr       _canvas_impl;
@@ -99,7 +99,7 @@ app::app(extent size, color bkd, bool animate)
 
    if (SUCCEEDED(hr))
    {
-      _canvas_impl = std::make_unique<ca::context>(hwnd, bkd);
+      _canvas_impl = std::make_unique<ca::d2d::context>(hwnd, bkd);
       _canvas = std::make_unique<ca::canvas>(_canvas_impl.get());
 
       ShowWindow(_canvas_impl->hwnd(), SW_SHOWNORMAL);

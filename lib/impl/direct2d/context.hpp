@@ -74,19 +74,20 @@ namespace cycfi::artist::d2d
 
    struct offscreen_context
    {
+                              offscreen_context(context& ctx);
                               offscreen_context(extent size, context& ctx);
                               ~offscreen_context();
 
       render_target*          target() const;
       device_context*         dc();
+      d2d::bitmap*            bitmap();
 
    private:
 
-      bitmap*                 _bm = nullptr;
+      d2d::bitmap*            _bm = nullptr;
       bitmap_render_target*   _bm_target = nullptr;
       device_context*         _dc = nullptr;
       render_target*          _target = nullptr;
-      context&                _ctx;
    };
 
    ////////////////////////////////////////////////////////////////////////////
@@ -213,9 +214,12 @@ namespace cycfi::artist::d2d
       {
          _target->BeginDraw();
 
+
          if (_bkd.a > 0)
             _target->Clear(_bkd);
          draw(*_target);
+
+
 
 
 
@@ -256,15 +260,19 @@ namespace cycfi::artist::d2d
          // Draw resulting bitmap
          dc->DrawImage(
             blur,
-            D2D1_POINT_2F{ 150, 150 }, // targetOffset
+            D2D1_POINT_2F{ 150+10, 150+10 }, // targetOffset
             D2D1_RECT_F{ 150, 150, 350, 350 }, // imageRectangle
             D2D1_INTERPOLATION_MODE_LINEAR);
 
          // Release
          bm->Release();
          bm_target->Release();
-         dc->Release();
+         //dc->Release();
          blur->Release();
+
+
+         // // redraw
+         // draw(*_target);
 */
 
 
@@ -301,13 +309,13 @@ namespace cycfi::artist::d2d
          bm_target->GetBitmap(&bm);
          blur->SetInput(0, bm);
          blur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
-         blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 5.0f);
+         blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 20.0f);
 
          // Draw resulting bitmap
          dc->DrawImage(
             blur,
-            D2D1_POINT_2F{ 150, 150 }, // targetOffset
-            D2D1_RECT_F{ 150, 150, 350, 350 }, // imageRectangle
+            // D2D1_POINT_2F{ 150, 150 }, // targetOffset
+            // D2D1_RECT_F{ 150, 150, 350, 350 }, // imageRectangle
             D2D1_INTERPOLATION_MODE_LINEAR);
 
          // Release
@@ -343,22 +351,24 @@ namespace cycfi::artist::d2d
       return _state;
    }
 
+   inline offscreen_context::offscreen_context(context& ctx)
+    : _target(ctx.target())
+   {
+      _target->CreateCompatibleRenderTarget(&_bm_target);
+   }
+
    inline offscreen_context::offscreen_context(extent size, context& ctx)
     : _target(ctx.target())
-    , _ctx(ctx)
    {
       _target->CreateCompatibleRenderTarget(
          { size.x, size.y }, &_bm_target
       );
-      ctx.target(_bm_target);
    }
 
    inline offscreen_context::~offscreen_context()
    {
-      _bm->Release();
-      _bm_target->Release();
-      _dc->Release();
-      _ctx.target(_target);
+      release(_bm);
+      release(_bm_target);
    }
 
    inline render_target* offscreen_context::target() const
@@ -368,8 +378,16 @@ namespace cycfi::artist::d2d
 
    inline device_context* offscreen_context::dc()
    {
-      _target->QueryInterface(&_dc);
+      if (!_dc)
+         _target->QueryInterface(&_dc);
       return _dc;
+   }
+
+   inline bitmap* offscreen_context::bitmap()
+   {
+      if (!_bm)
+         _bm_target->GetBitmap(&_bm);
+      return _bm;
    }
 }
 

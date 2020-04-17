@@ -145,13 +145,75 @@ namespace cycfi::artist
    void canvas::canvas_state::fill(context& ctx, bool preserve)
    {
       auto render =
-         [this, preserve](render_target* target, brush* brush)
+         [this](render_target* target, brush* brush, bool preserve)
          {
-            target->SetTransform(_matrix);
             _path.impl()->fill(*target, brush, preserve);
          };
 
-      render(ctx.target(), _fill_paint);
+      ctx.target()->SetTransform(_matrix);
+      if (_shadow_blur != 0)
+      {
+         auto bounds = _path.impl()->fill_bounds(*ctx.target());
+
+         // adjust for blur size
+         float extra_x =  _shadow_blur * 2 * _matrix.m11;
+         float extra_y =  _shadow_blur * 2 * _matrix.m22;
+         bounds.left -= extra_x;
+         bounds.right += extra_x;
+         bounds.top -= extra_x;
+         bounds.bottom += extra_x;
+         auto size = bounds.size();
+
+         offscreen_context offscreen{ ctx };
+         auto bm_target = offscreen.target();
+
+         float alpha = 1.0;
+         if (std::holds_alternative<color>(_fill_info))
+            alpha = std::get<color>(_fill_info).alpha;
+
+         //bm_target->SetTransform(matrix2x2f::Identity());
+
+         bm_target->BeginDraw();
+
+         solid_color_brush* shadow_paint = nullptr;
+         bm_target->CreateSolidColorBrush(
+            D2D1::ColorF(
+               _shadow_color.red
+             , _shadow_color.green
+             , _shadow_color.blue
+             , alpha                // Use the fill color's alpha
+            ), &shadow_paint
+         );
+
+         render(bm_target, shadow_paint, true);
+         bm_target->EndDraw();
+
+         ID2D1Effect* blur;
+         auto dc = offscreen.dc();
+         dc->CreateEffect(CLSID_D2D1GaussianBlur, &blur);
+
+         auto blur_val = (_shadow_blur / _matrix.m11) / 3;
+
+         blur->SetInput(0, offscreen.bitmap());
+         blur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
+         blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, blur_val);
+
+         // blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 0.0);
+//         blur->SetValue(D2D1_SHADOW_PROP_OPTIMIZATION, D2D1_DIRECTIONALBLUR_OPTIMIZATION_SPEED);
+
+         // float offset_x =  _shadow_offset.x * _matrix.m11;
+         // float offset_y =  _shadow_offset.y * _matrix.m22;
+
+         dc->DrawImage(
+            blur,
+            D2D1_POINT_2F{ bounds.left, bounds.top }, // targetOffset
+            D2D1_RECT_F{ bounds.left, bounds.top, bounds.right, bounds.bottom }, // imageRectangle
+            D2D1_INTERPOLATION_MODE_LINEAR);
+
+         release(shadow_paint);
+      }
+
+      render(ctx.target(), _fill_paint, preserve);
    }
 
    void canvas::canvas_state::stroke(context& ctx, bool preserve)
@@ -382,6 +444,7 @@ namespace cycfi::artist
 
    void canvas::shadow_style(point offset, float blur, color c)
    {
+      _state->shadow_style(offset, blur, c);
    }
 
    void canvas::global_composite_operation(composite_op_enum mode)
