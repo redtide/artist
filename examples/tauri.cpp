@@ -7,7 +7,7 @@
 
 using namespace cycfi::artist;
 auto constexpr window_size = point{ 640.0f, 480.0f };
-auto constexpr bkd_color = /*colors::white; */ rgb(44, 42, 45);
+auto constexpr bkd_color = rgb(44, 42, 45);
 
 void background(canvas& cnv)
 {
@@ -64,8 +64,6 @@ void tauri(canvas& cnv)
 
 void draw(canvas& cnv)
 {
-   //background(cnv);
-   // cnv.scale(10, 10);
    cnv.translate(85, 0);
    tauri(cnv);
 }
@@ -73,10 +71,10 @@ void draw(canvas& cnv)
 // void draw(canvas& cnv)
 // {
 //    cnv.scale(12, 12);
-//    cnv.shadow_style({ 5.0, 5.0 }, 20, rgb(0, 0, 255));
+//    cnv.line_width(1);
 //    cnv.circle({ 20, 20, 16 });
-//    cnv.fill_style(colors::black);
-//    cnv.fill();
+//    cnv.stroke_style(colors::black);
+//    cnv.stroke();
 // }
 
 int main(int argc, char const* argv[])

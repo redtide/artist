@@ -20,7 +20,7 @@ namespace cycfi::artist
                         canvas_state();
                         ~canvas_state();
 
-      virtual void      update(render_target& cnv);
+      virtual void      update(render_target& target);
       virtual void      discard();
 
       artist::path&     path();
@@ -93,14 +93,15 @@ namespace cycfi::artist
       release(_stroke_style);
    }
 
-   void canvas::canvas_state::update(render_target& cnv)
+   void canvas::canvas_state::update(render_target& target)
    {
       auto make =
-         [&cnv](auto const& info) -> brush*
+         [&target](auto const& info) -> brush*
          {
-            return make_paint(info, cnv);
+            return make_paint(info, target);
          };
 
+      _matrix = _matrix.Identity();
       if (!_fill_paint)
          _fill_paint = std::visit(make, _fill_info);
       if (!_stroke_paint)
@@ -155,11 +156,6 @@ namespace cycfi::artist
       bounds.right += offset;
       bounds.top -= offset;
       bounds.bottom += offset;
-
-      // bounds.left += _shadow_offset.x;
-      // bounds.right += _shadow_offset.x;
-      // bounds.top += _shadow_offset.y;
-      // bounds.bottom += _shadow_offset.y;
    }
 
    void canvas::canvas_state::apply_blur(context& ctx, artist::rect bounds, render_function render)
@@ -184,19 +180,13 @@ namespace cycfi::artist
       );
 
       render(bm_target, shadow_paint, true);
-
-      // bm_target->DrawRectangle(
-      //    { bounds.left, bounds.top, bounds.right, bounds.bottom},
-      //    shadow_paint, 1, nullptr);
-
-
       bm_target->EndDraw();
 
       ID2D1Effect* blur;
       auto dc = offscreen.dc();
       dc->CreateEffect(CLSID_D2D1GaussianBlur, &blur);
 
-      auto blur_val = (_shadow_blur / _matrix.m11) / 3;
+      auto blur_val = (_shadow_blur / _matrix.m11) / 2;
       blur->SetInput(0, offscreen.bitmap());
       blur->SetValue(D2D1_GAUSSIANBLUR_PROP_BORDER_MODE, D2D1_BORDER_MODE_SOFT);
       blur->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, blur_val);
@@ -217,6 +207,8 @@ namespace cycfi::artist
          D2D1_RECT_F{ bounds.left, bounds.top, bounds.right, bounds.bottom }, // imageRectangle
          D2D1_INTERPOLATION_MODE_LINEAR);
 
+      release(blur);
+      release(xform);
       release(shadow_paint);
    }
 
@@ -236,11 +228,6 @@ namespace cycfi::artist
          apply_blur(ctx, bounds, render);
 
       render(ctx.target(), _fill_paint, preserve);
-
-      // ctx.target()->SetTransform(matrix2x2f::Identity());
-      // ctx.target()->DrawRectangle(
-      //    { bounds.left, bounds.top, bounds.right, bounds.bottom},
-      //    _stroke_paint, 1, nullptr);
    }
 
    void canvas::canvas_state::stroke(context& ctx, bool preserve)
@@ -263,11 +250,6 @@ namespace cycfi::artist
       if (_shadow_blur != 0)
          apply_blur(ctx, bounds, render);
       render(ctx.target(), _stroke_paint, preserve);
-
-      // ctx.target()->SetTransform(matrix2x2f::Identity());
-      // ctx.target()->DrawRectangle(
-      //    { bounds.left, bounds.top, bounds.right, bounds.bottom},
-      //    _stroke_paint, 1, nullptr);
    }
 
    void canvas::canvas_state::line_cap(line_cap_enum cap)
