@@ -14,6 +14,8 @@
 #include "SkSurface.h"
 #include <chrono>
 
+#include <iostream>
+
 using namespace cycfi::artist;
 float elapsed_ = 0;  // rendering elapsed time
 
@@ -30,6 +32,8 @@ namespace
       sk_sp<const GrGLInterface> _xface;
       sk_sp<GrContext>           _ctx;
       sk_sp<SkSurface>           _surface;
+
+       std::chrono::time_point<std::chrono::steady_clock> _start;
    };
 
    void close_window(GtkWidget*, gpointer user_data)
@@ -96,16 +100,20 @@ namespace
             state._surface->flush();
          };
 
-      auto start = std::chrono::steady_clock::now();
-      draw_f();
       auto stop = std::chrono::steady_clock::now();
-      elapsed_ = std::chrono::duration<double>{ stop - start }.count();
+      elapsed_ = std::chrono::duration<double>{ stop - state._start }.count();
+      auto start = std::chrono::steady_clock::now();
+      state._start = start;
+
+
+      draw_f();
 
       return true;
    }
 
    gboolean animate(gpointer user_data)
    {
+      view_state& state = *reinterpret_cast<view_state*>(user_data);
       GtkWidget* da = GTK_WIDGET(user_data);
       gtk_widget_queue_draw(da);
       return true;
@@ -142,7 +150,7 @@ namespace
       state._scale = gdk_window_get_scale_factor(w);
 
       if (state._animate)
-         state._timer_id = g_timeout_add(1000 / 60, animate, gl_area);
+         state._timer_id = g_timeout_add(1000 / 120, animate, gl_area);
    }
 }
 

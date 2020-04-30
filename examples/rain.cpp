@@ -16,7 +16,7 @@ using namespace cycfi::artist;
 #if defined(ARTIST_SKIA) && !defined(linux)
 constexpr auto persistence = 0.10;
 #else
-constexpr auto persistence = 0.04;
+constexpr auto persistence = 0.05;
 #endif
 
 constexpr auto window_size = extent{ 640, 360 };
@@ -58,7 +58,7 @@ void rain(canvas& cnv)
 
    if (opacity > persistence)
       opacity *= 0.8;
-   print_elapsed(cnv, window_size);
+   print_elapsed(cnv, window_size, colors::black.opacity(0.1));
 }
 
 void draw(canvas& cnv)
