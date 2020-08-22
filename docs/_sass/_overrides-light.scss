@@ -1,0 +1,16 @@
+// Copy this file to your site and use it to override CSS variables that apply to the light CSS
+// definitions. See `main-light.scss` in the theme for a complete list of variables you can override
+// with this file.
+
+// @debug "Old link-color: #{$link-color}";
+// $link-color: #FF0000;
+// @debug "New link-color: #{$link-color}";
+
+$hyde-primary: $headings-color;
+$link-color:   $headings-color;
+
+$footer-background-color: transparent;
+$footer-border-color: #e4e4e4;
+
+$header-background-color: transparent;
+$header-border-color: #e4e4e4;
