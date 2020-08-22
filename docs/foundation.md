@@ -1,3 +1,6 @@
+---
+tab: Foundation
+---
 # Foundation
 
 ## Table of Contents
@@ -1077,8 +1080,3 @@ find_file(path)
 2. Find a resource file by searching the list of directory search paths.
    Returns an empty path if file is not found. returns an instance of
    `std::filesystem::path`.
-
--------------------------------------------------------------------------------
-
-*Copyright (c) 2014-2020 Joel de Guzman. All rights reserved.*
-*Distributed under the [MIT License](https://opensource.org/licenses/MIT)*

@@ -1,3 +1,6 @@
+---
+tab: Setup
+---
 # Setup and Installation
 
 ## Table of Contents
@@ -16,8 +19,8 @@ order to use the library:
 
 1. A C++17 compiler
 2. Git
-3. [CMake](https://cmake.org/) 3.9.6 or higher
-4. [GTK3](https://www.gtk.org/) (See note 4)
+3. [CMake] 3.9.6 or higher
+4. [GTK3] (See note 4)
 
 On the MacOS, if the backend is Quartz-2D (default build) there are no
 additional dependencies.
@@ -25,17 +28,18 @@ additional dependencies.
 If the backend is Skia, using the cmake option `ARTIST_SKIA=ON`, there are
 additional requirements and dependencies:
 
-1. [Skia](https://skia.org/) (See note 1)
-2. [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/) (See note 2)
-3. [libunibreak](https://github.com/adah1972/libunibreak) (See note 2)
-4. [OpenGL](https://www.opengl.org/) (See note 3)
-5. [fontconfig](https://www.freedesktop.org/wiki/Software/fontconfig/) (See note 2)
+1. [Skia] (See note 1)
+2. [HarfBuzz] (See note 2)
+3. [libunibreak] (See note 2)
+4. [OpenGL] (See note 3)
+5. [fontconfig] (See note 2)
 
 #### Notes:
+
 1. No setup required. Platform specific binary automatically downloaded by
    cmake.
 2. On Linux, this library is a required dependency that needs to be installed
-   via `apt-get`. Otherwise, no setup required. Platform specific binary
+   via [apt-get]. Otherwise, no setup required. Platform specific binary
    automatically downloaded by cmake.
 3. This library is a required dependency that needs to be installed.
 4. Linux only. This library is a required dependency that needs to be
@@ -43,7 +47,7 @@ additional requirements and dependencies:
 
 Additionally, the following library is dragged as a submodule:
 
-1. The [Cycfi infra library](https://github.com/cycfi/infra/)
+1. The [Cycfi infra library]
 
 Infra provides some basic groundwork common to Cycfi libraries, including
 Artist.
@@ -51,13 +55,11 @@ Artist.
 ### C++17
 
 Artist currently supports the MacOS, Windows and Linux. In the Mac, we
-support both [XCode](https://developer.apple.com/xcode/) and
-[CLion](https://www.jetbrains.com/clion/) IDEs. Artist is tested with XCode
-10 and XCode 11. In Windows, we support Windows 10 with [Visual Studio
-2019](https://visualstudio.microsoft.com/vs/), although it will probably also
-work with older versions of the Visual Studio IDE. In Linux, we support both
-[Clang](https://clang.llvm.org/) and [g++](https://gcc.gnu.org/) Get the
-latest version with a C++17 compiler.
+support both [XCode] and [CLion] IDEs. Artist is tested with XCode
+10 and XCode 11. In Windows, we support Windows 10 with [Visual Studio 2019],
+although it will probably also work with older versions of the Visual Studio IDE.
+In Linux, we support both [Clang] and [g++]. Get the latest version
+with a C++17 compiler.
 
 ### Git
 
@@ -69,15 +71,15 @@ git clone --recurse-submodules https://github.com/cycfi/artist.git
 
 ### CMake
 
-Make sure you have [CMake](https://cmake.org/) 3.7.2 or higher. Follow the
-installation procedure for your platform, or follow the instructions below
-for specific environments.
+Make sure you have [CMake] 3.7.2 or higher. Follow the installation procedure
+for your platform, or follow the instructions below for specific environments.
 
 -------------------------------------------------------------------------------
 
 ## MacOS
 
-### **Optional**. If the desired backend is Skia, using the cmake option `-DARTIST_SKIA=ON`, install required libraries using [Homebrew](https://brew.sh/):
+**Optional**: If the desired backend is Skia, using the cmake option
+`-DARTIST_SKIA=ON`, install required libraries using [Homebrew]:
 
 ```
 brew install fontconfig
@@ -98,7 +100,7 @@ brew install cmake
 There are multiple ways to generate a project file using CMake depending on
 your platform and desired IDE, but here are some examples for the MacOS:
 
-### Using [XCode](https://developer.apple.com/xcode/):
+### Using XCode
 
 1. CD to the artist library.
 2. Make a build directory inside the artist directory.
@@ -112,7 +114,7 @@ cd build
 cmake -GXcode ../
 ```
 
-**Optional**. If the desired backend is Skia, use the cmake option `-DARTIST_SKIA=ON`:
+**Optional**: If the desired backend is Skia, use the cmake option `-DARTIST_SKIA=ON`:
 
 ```
 cmake -GXcode -DARTIST_SKIA=ON ../
@@ -120,15 +122,15 @@ cmake -GXcode -DARTIST_SKIA=ON ../
 
 By default, the backend on MacOS is Quartz-2D.
 
-If successful, cmake will generate an XCode project in the build directory.
+If successful, cmake will generate an [XCode] project in the build directory.
 Open the project file artist.xcodeproj and build all. You should see a couple
 of example applications.
 
-### Using [CLion](https://www.jetbrains.com/clion/):
+### Using CLion
 
-Simply open the CMakeLists.txt file using CLion and build the project.
+Simply open the CMakeLists.txt file using [CLion] and build the project.
 
-**Optional**. If the desired backend is Skia, use the cmake option
+**Optional**: If the desired backend is Skia, use the cmake option
 `ARTIST_SKIA=ON`. This option can be set in Preferences->Build, Execution,
 Deployment->CMake->CMake Options.
 
@@ -144,12 +146,11 @@ installed. CMake will take care of downloading and setting up dependencies.
 
 ### Install CMake
 
-Follow the instructions provided here: https://cmake.org/install/
+Follow the instructions provided here: <https://cmake.org/install/>
 
 ### Generating the Project using CMake
 
-Assuming you have [Visual Studio
-2019](https://visualstudio.microsoft.com/vs/) installed.
+Assuming you have [Visual Studio 2019] installed.
 
 #### Visual Studio 2019 GUI
 
@@ -194,7 +195,9 @@ Invoke `nmake` to build the binary.
 
 ## Linux
 
-### Install required libraries using [apt-get](https://linux.die.net/man/8/apt-get) (requires `sudo`).
+### Install required libraries
+
+On Debian and derived distributions using [apt-get] (requires `sudo`):
 
 ```
 sudo apt-get install libharfbuzz-dev
@@ -219,7 +222,7 @@ sudo apt-get -y install cmake
 There are multiple ways to generate a project file using CMake depending on
 your platform and desired IDE, but here are some examples for Linux:
 
-### Using UNIX makefiles:
+### Using UNIX makefiles
 
 1. CD to the artist library.
 2. Make a build directory inside the artist directory.
@@ -235,9 +238,9 @@ cmake -G "Unix Makefiles" ../
 
 If successful, cmake will generate Unix Make files in the build directory.
 
-### Using [CLion](https://www.jetbrains.com/clion/):
+### Using CLion
 
-Simply open the CMakeLists.txt file using CLion and build the project.
+Simply open the CMakeLists.txt file using [CLion] and build the project.
 
 -------------------------------------------------------------------------------
 
@@ -259,7 +262,18 @@ the graphics.
 Feel free to inspect and mess with the examples. Each example demonstrates
 different aspects of the Artist library.
 
--------------------------------------------------------------------------------
-
-*Copyright (c) 2014-2020 Joel de Guzman. All rights reserved.*
-*Distributed under the [MIT License](https://opensource.org/licenses/MIT)*
+[apt-get]:             https://linux.die.net/man/8/apt-get
+[Clang]:               https://clang.llvm.org/
+[CLion]:               https://www.jetbrains.com/clion/
+[CMake]:               https://cmake.org/
+[Cycfi infra library]: https://github.com/cycfi/infra/
+[g++]:                 https://gcc.gnu.org/
+[GTK3]:                https://www.gtk.org/
+[fontconfig]:          https://www.freedesktop.org/wiki/Software/fontconfig/
+[HarfBuzz]:            https://www.freedesktop.org/wiki/Software/HarfBuzz/
+[Homebrew]:            https://brew.sh/
+[libunibreak]:         https://github.com/adah1972/libunibreak
+[OpenGL]:              https://www.opengl.org/
+[Skia]:                https://skia.org/
+[Visual Studio 2019]:  https://visualstudio.microsoft.com/vs/
+[XCode]:               https://developer.apple.com/xcode/

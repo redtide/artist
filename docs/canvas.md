@@ -1,3 +1,6 @@
+---
+tab: Canvas
+---
 # Canvas
 
 ## Table of Contents
@@ -212,8 +215,7 @@ p.fill_rule(fr)
     2. A rounded-rectangle from a `rect`, `r`, and `radius`.
     3. A circle from a `circle`, `c`.
     4. A complex path from a string view that conforms to the syntax of an
-       [SVG path
-       element](https://www.w3.org/TR/SVG11/paths.html#PathElement).
+       [SVG path element](https://www.w3.org/TR/SVG11/paths.html#PathElement).
 3. Copy construct a `path `, `p`.
 4. Assign `p2`, to `p`.
 5. Returns `true` if a `p2`, is equal to `p`.
@@ -242,8 +244,3 @@ p.fill_rule(fr)
     point.
 19. Set the path's fill rule to `fr` (which can be `path::fill_winding` or
     `path::fill_odd_even`).
-
--------------------------------------------------------------------------------
-
-*Copyright (c) 2014-2020 Joel de Guzman. All rights reserved.*
-*Distributed under the [MIT License](https://opensource.org/licenses/MIT)*
