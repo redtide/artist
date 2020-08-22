@@ -14,3 +14,13 @@ $footer-border-color: #e4e4e4;
 
 $header-background-color: transparent;
 $header-border-color: #e4e4e4;
+
+.page-content h1,
+.page-content h2,
+.page-content h3,
+.page-content h4,
+.page-content h5,
+.page-content h6
+{
+    color: $headings-color;
+}
