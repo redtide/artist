@@ -6,21 +6,33 @@
 // $link-color: #FF0000;
 // @debug "New link-color: #{$link-color}";
 
-$hyde-primary: $headings-color;
-$link-color:   $headings-color;
+@import "variables-light";
 
-$footer-background-color: transparent;
-$footer-border-color: #e4e4e4;
-
-$header-background-color: transparent;
-$header-border-color: #e4e4e4;
-
-.page-content h1,
-.page-content h2,
-.page-content h3,
-.page-content h4,
-.page-content h5,
-.page-content h6
+.highlight .cp,
+.highlight .mi,
+.highlight .n, .highlight .nf,
+.highlight .o,
+.highlight .p,
+.highlight .k, .highlight .kt, .highlight .kv
 {
-    color: $headings-color;
+    font-weight: normal;
+}
+.main-content
+{
+    h1, h2, h3, h4, h5, h6
+    {
+        color: $hyde-primary;
+    }
+}
+.main-content .highlight pre, .main-content pre
+{
+    background-color: #ffffff;
+}
+.wrapper > table
+{
+    th, td
+    {
+        padding: 0.5rem 1rem;
+        border: 1px solid #e9ebec;
+    }
 }
