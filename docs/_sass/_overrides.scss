@@ -48,4 +48,8 @@ img
         background-color: $header-border-color;
         border: 0;
     }
+    article > div > code
+    {
+        color: #d14; // #include
+    }
 }
