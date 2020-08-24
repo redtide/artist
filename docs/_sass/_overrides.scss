@@ -5,7 +5,7 @@
 // $base-font-family: "Georgia";
 // @debug "New base-font-family: #{$base-font-family}";
 
-@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700');
+@import "variables";
 
 .grid
 {
@@ -50,6 +50,6 @@ img
     }
     article > div > code
     {
-        color: #d14; // #include
+        color: $include_path_color;
     }
 }
