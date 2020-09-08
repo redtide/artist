@@ -16,6 +16,7 @@ adobe_hyde:
   header_image: "/assets/images/artist.png"
 
 plugins:
+- jekyll-sitemap
 - jemoji
 
 # Using GitHub Jekyll v3.9.0, these are not ignored by default

@@ -2,5 +2,5 @@ _site
 .bundle
 .sass-cache
 .jekyll-metadata
-/Gemfile.lock
+Gemfile.lock
 *.code-workspace
